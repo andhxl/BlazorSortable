@@ -5,7 +5,7 @@ using Microsoft.JSInterop;
 namespace BlazorSortable;
 
 /// <summary>
-/// Blazor component for creating a drop zone for elements.
+/// Component for creating a drop zone for elements.
 /// </summary>
 public partial class SortableDropZone : SortableBase
 {

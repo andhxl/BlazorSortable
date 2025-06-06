@@ -8,7 +8,7 @@
         <div class="list-column">
             <h3>List 1</h3>
             <SortableList TItem="Item1"
-                      Items="@GenerateItem1List(3)"
+                      Items="GenerateItem1List(3)"
                       Group="group1"
                       Class="sortable-list"
                       Handle=".my-handle">
@@ -18,7 +18,7 @@
         <div class="list-column">
             <h3>List 2</h3>
             <SortableList TItem="Item1"
-                      Items="@GenerateItem1List(3, 4)"
+                      Items="GenerateItem1List(3, 4)"
                       Group="group1"
                       Class="sortable-list"
                       Handle=".my-handle">
@@ -34,7 +34,7 @@
         <div class="list-column">
             <h3>List 1</h3>
             <SortableList TItem="Item1"
-                      Items="@GenerateItem1List(3)"
+                      Items="GenerateItem1List(3)"
                       Group="group2"
                       Pull="PullMode.Clone"
                       CloneFactory="@(i => new Item1 { Name = i.Name + "_clone" })"
@@ -48,7 +48,7 @@
         <div class="list-column">
             <h3>List 2</h3>
             <SortableList TItem="Item1"
-                      Items="@GenerateItem1List(3, 4)"
+                      Items="GenerateItem1List(3, 4)"
                       Group="group2"
                       Class="sortable-list">
                 <Item1Component Item="@context" />
@@ -63,7 +63,7 @@
         <div class="list-column">
             <h3>List 1</h3>
             <SortableList TItem="Item1"
-                      Items="@GenerateItem1List(3)"
+                      Items="GenerateItem1List(3)"
                       Id="list1"
                       Group="group3"
                       Put="PutMode.False"
@@ -74,7 +74,7 @@
         <div class="list-column">
             <h3>List 2 (missing converter)</h3>
             <SortableList TItem="Item1"
-                      Items="@GenerateItem1List(3, 4)"
+                      Items="GenerateItem1List(3, 4)"
                       Group="group3"
                       Id="list2"
                       Put="PutMode.False"
@@ -85,7 +85,7 @@
         <div class="list-column">
             <h3>List 3</h3>
             <SortableList TItem="Item2"
-                      Items="@GenerateItem2List(2)"
+                      Items="GenerateItem2List(2)"
                       Put="PutMode.Groups"
                       PutGroups="@(["group3"])"
                       Converters="@list7Converters"
@@ -104,7 +104,7 @@
         <div class="list-column">
             <h3>List</h3>
             <SortableList TItem="Item1"
-                      Items="@GenerateItem1List(4)"
+                      Items="GenerateItem1List(4)"
                       Group="drop"
                       Pull="PullMode.True"
                       DragClass="dragt"

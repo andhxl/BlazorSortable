@@ -5,12 +5,9 @@ using Microsoft.JSInterop;
 namespace BlazorSortable;
 
 /// <summary>
-/// Blazor component for creating sortable lists with drag and drop functionality.
+/// Component for creating sortable lists with drag and drop functionality.
 /// </summary>
 /// <typeparam name="TItem">Type of items in the list.</typeparam>
-/// <remarks>
-/// The component uses the SortableJS library.
-/// </remarks>
 public partial class SortableList<TItem> : SortableBase, ISortable
 {
     /// <summary>
