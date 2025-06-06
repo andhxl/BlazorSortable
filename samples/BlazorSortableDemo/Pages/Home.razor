@@ -1,0 +1,157 @@
+﻿@page "/"
+
+<h1>BlazorSortable Demo</h1>
+
+<div class="lists-group">
+    <h2>Sort</h2>
+    <div class="lists-row">
+        <div class="list-column">
+            <h3>List 1</h3>
+            <SortableList TItem="Item1"
+                      Items="@GenerateItem1List(3)"
+                      Group="group1"
+                      Class="sortable-list"
+                      Handle=".my-handle">
+                <Item1Component Item="context" />
+            </SortableList>
+        </div>
+        <div class="list-column">
+            <h3>List 2</h3>
+            <SortableList TItem="Item1"
+                      Items="@GenerateItem1List(3, 4)"
+                      Group="group1"
+                      Class="sortable-list"
+                      Handle=".my-handle">
+                <Item1Component Item="context" />
+            </SortableList>
+        </div>
+    </div>
+</div>
+
+<div class="lists-group">
+    <h2>Clone</h2>
+    <div class="lists-row">
+        <div class="list-column">
+            <h3>List 1</h3>
+            <SortableList TItem="Item1"
+                      Items="@GenerateItem1List(3)"
+                      Group="group2"
+                      Pull="PullMode.Clone"
+                      CloneFactory="@(i => new Item1 { Name = i.Name + "_clone" })"
+                      Put="PutMode.False"
+                      Class="sortable-list">
+                <ChildContent Context="context">
+                    <Item1Component Item="context" />
+                </ChildContent>
+            </SortableList>
+        </div>
+        <div class="list-column">
+            <h3>List 2</h3>
+            <SortableList TItem="Item1"
+                      Items="@GenerateItem1List(3, 4)"
+                      Group="group2"
+                      Class="sortable-list">
+                <Item1Component Item="@context" />
+            </SortableList>
+        </div>
+    </div>
+</div>
+
+<div class="lists-group">
+    <h2>Convert</h2>
+    <div class="lists-row">
+        <div class="list-column">
+            <h3>List 1</h3>
+            <SortableList TItem="Item1"
+                      Items="@GenerateItem1List(3)"
+                      Id="list1"
+                      Group="group3"
+                      Put="PutMode.False"
+                      Class="sortable-list">
+                <Item1Component Item="context" />
+            </SortableList>
+        </div>
+        <div class="list-column">
+            <h3>List 2 (missing converter)</h3>
+            <SortableList TItem="Item1"
+                      Items="@GenerateItem1List(3, 4)"
+                      Group="group3"
+                      Id="list2"
+                      Put="PutMode.False"
+                      Class="sortable-list">
+                <Item1Component Item="context" />
+            </SortableList>
+        </div>
+        <div class="list-column">
+            <h3>List 3</h3>
+            <SortableList TItem="Item2"
+                      Items="@GenerateItem2List(2)"
+                      Put="PutMode.Groups"
+                      PutGroups="@(["group3"])"
+                      Converters="@list7Converters"
+                      Pull="PullMode.False"
+                      Class="sortable-list"
+                      Context="item">
+                @($"{item.Name}: {item.Value} ({item.Type})")
+            </SortableList>
+        </div>
+    </div>
+</div>
+
+<div class="lists-group">
+    <h2>Drop zone</h2>
+    <div class="lists-row">
+        <div class="list-column">
+            <h3>List</h3>
+            <SortableList TItem="Item1"
+                      Items="@GenerateItem1List(4)"
+                      Group="drop"
+                      Pull="PullMode.True"
+                      DragClass="dragt"
+                      Class="sortable-list">
+                <Item1Component Item="context" />
+            </SortableList>
+        </div>
+        <div class="list-column">
+            <h3>Drop zone</h3>
+            <SortableDropZone Class="drop-zone" GhostClass="ghostt" Put="PutMode.Groups" PutGroups="@(["drop", "group3"])" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Item1> GenerateItem1List(int count, int startNumber = 1)
+    {
+        List<Item1> list = [];
+        for (int i = 0; i < count; i++)
+            list.Add(new Item1 { Name = $"Item {startNumber++}" });
+        return list;
+    }
+
+    private List<Item2> GenerateItem2List(int count, int startNumber = 1)
+    {
+        List<Item2> list = [];
+        for (int i = 0; i < count; i++)
+            list.Add(new Item2 { Name = $"Item {startNumber++}" });
+        return list;
+    }
+
+    private Dictionary<string, Func<object, Item2>> list7Converters = new ConvertersBuilder<Item2>()
+        .Add<Item1>("list1", i1 => new Item2
+        {
+            Name = i1.Name + " from list1",
+            Value = 100
+        })
+        .Add<Item1>("list2_", i1 => new Item2
+        {
+            Name = i1.Name + " from list2",
+            Value = 50
+        });
+
+    private List<object> TrashItems = new();
+
+    private void OnTrashAdd((int oldIndex, int newIndex, string sourceId, bool isClone) args)
+    {
+        TrashItems.Clear();
+    }
+}

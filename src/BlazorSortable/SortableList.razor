@@ -1,0 +1,15 @@
+﻿@inherits SortableBase
+
+@typeparam TItem
+
+<div id="@Id" class="@Class">
+    @if (ChildContent is not null)
+    {
+        @foreach (var item in Items)
+        {
+            <div @key="GetKey(item)">
+                @ChildContent(item)
+            </div>
+        }
+    }
+</div>
