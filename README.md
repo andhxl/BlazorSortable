@@ -18,7 +18,7 @@ dotnet add package BlazorSortable
 Add to your .csproj file:
 ```xml
 <ItemGroup>
-    <PackageReference Include="BlazorSortable" Version="1.0.0" />
+    <PackageReference Include="BlazorSortable" Version="1.*" />
 </ItemGroup>
 ```
 
