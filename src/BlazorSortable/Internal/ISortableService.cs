@@ -2,9 +2,9 @@
 
 internal interface ISortableService
 {
-    public void Register(string id, ISortable sortable);
+    public void RegisterSortableList(string id, ISortableList sortableList);
 
-    public void Unregister(string id);
+    public void UnregisterSortableList(string id);
 
-    public ISortable? Get(string id);
+    public ISortableList? GetSortableList(string id);
 }

@@ -4,21 +4,21 @@ namespace BlazorSortable.Internal;
 
 internal class SortableService : ISortableService
 {
-    private readonly ConcurrentDictionary<string, ISortable> _sortables = [];
+    private readonly ConcurrentDictionary<string, ISortableList> _sortableLists = [];
 
-    public void Register(string id, ISortable sortable)
+    public void RegisterSortableList(string id, ISortableList sortableList)
     {
-        _sortables[id] = sortable;
+        _sortableLists[id] = sortableList;
     }
 
-    public void Unregister(string id)
+    public void UnregisterSortableList(string id)
     {
-        _sortables.TryRemove(id, out _);
+        _sortableLists.TryRemove(id, out _);
     }
 
-    public ISortable? Get(string id)
+    public ISortableList? GetSortableList(string id)
     {
-        _sortables.TryGetValue(id, out var sortable);
-        return sortable;
+        _sortableLists.TryGetValue(id, out var sortableList);
+        return sortableList;
     }
 }

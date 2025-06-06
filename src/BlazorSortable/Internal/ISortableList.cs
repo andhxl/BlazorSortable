@@ -1,6 +1,6 @@
 ﻿namespace BlazorSortable.Internal;
 
-internal interface ISortable
+internal interface ISortableList
 {
     object? this[int index] { get; }
 

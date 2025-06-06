@@ -8,7 +8,7 @@ namespace BlazorSortable;
 /// Component for creating sortable lists with drag and drop functionality.
 /// </summary>
 /// <typeparam name="TItem">Type of items in the list.</typeparam>
-public partial class SortableList<TItem> : SortableBase, ISortable
+public partial class SortableList<TItem> : SortableBase, ISortableList
 {
     /// <summary>
     /// List of items to display and sort.
@@ -130,7 +130,7 @@ public partial class SortableList<TItem> : SortableBase, ISortable
 
     private protected override Task OnAfterFirstRenderAsync()
     {
-        SortableService.Register(Id, this);
+        SortableService.RegisterSortableList(Id, this);
 
         return Task.CompletedTask;
     }
@@ -195,7 +195,7 @@ public partial class SortableList<TItem> : SortableBase, ISortable
     [JSInvokable]
     public void OnAddJs(string sourceSortableId, int oldIndex, int newIndex, bool isClone)
     {
-        var sourceSortable = SortableService.Get(sourceSortableId)!;
+        var sourceSortable = SortableService.GetSortableList(sourceSortableId)!;
         sourceSortable.SuppressNextRemove = !isClone;
 
         var sourceObject = sourceSortable[oldIndex]!;
@@ -260,11 +260,11 @@ public partial class SortableList<TItem> : SortableBase, ISortable
     [JSInvokable]
     public void OnRemoveJs(int index)
     {
-        var sortable = (ISortable)this;
+        var sortableList = (ISortableList)this;
 
-        if (sortable.SuppressNextRemove)
+        if (sortableList.SuppressNextRemove)
         {
-            sortable.SuppressNextRemove = false;
+            sortableList.SuppressNextRemove = false;
             return;
         }
 
@@ -288,12 +288,12 @@ public partial class SortableList<TItem> : SortableBase, ISortable
         }
     }
 
-    object? ISortable.this[int index]
+    object? ISortableList.this[int index]
     {
         get => Items[index];
     }
 
-    object? ISortable.TryCloneItem(object item)
+    object? ISortableList.TryCloneItem(object item)
     {
         if (CloneFactory is null) return null;
 
@@ -308,11 +308,11 @@ public partial class SortableList<TItem> : SortableBase, ISortable
         }
     }
 
-    bool ISortable.SuppressNextRemove { get; set; }
+    bool ISortableList.SuppressNextRemove { get; set; }
 
     private protected override ValueTask DisposeAsyncCore()
     {
-        SortableService.Unregister(Id);
+        SortableService.UnregisterSortableList(Id);
 
         return ValueTask.CompletedTask;
     }

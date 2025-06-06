@@ -45,7 +45,7 @@ public partial class SortableDropZone : SortableBase
     [JSInvokable]
     public void OnAddJs(string sourceSortableId, int index)
     {
-        var sourceSortable = SortableService.Get(sourceSortableId)!;
+        var sourceSortable = SortableService.GetSortableList(sourceSortableId)!;
         var sourceObject = sourceSortable[index]!;
 
         OnDrop.InvokeAsync(sourceObject);
