@@ -66,19 +66,19 @@ builder.Services.AddSortableServices();
 ### SortableList
 
 ```razor
-<SortableList TItem="Item"
-              Items="Items"
-              Group="group1"
-              Class="sortable-list">
-    <ItemComponent Item="context" />
+<SortableList TItem="Person"
+              Items="Persons"
+              Class="my-sortable-list"
+              Group="group1">
+    <PersonComponent Person="context" />
 </SortableList>
 ```
 
 ### SortableDropZone
 
 ```razor
-<SortableDropZone Group="group1"
-                  Class="drop-zone"
+<SortableDropZone Class="my-sortable-drop-zone"
+                  Group="group1"
                   OnDrop="HandleDrop" />
 ```
 
@@ -108,16 +108,16 @@ var converters = new ConvertersBuilder<Employee>()
 | Parameter | Type | Default Value | Description |
 |----------|------|----------------------|-------------|
 | `TItem` | *(type parameter)* | — | The type of item in the list |
-| `Items` | `IList<TItem>` | — | **Required parameter.** List of items to display and sort |
-| `Class` | `string` | `null` | CSS class for the list container |
+| `Items` | `IList<TItem>` | — | **Required.** List of items to display and sort |
+| `Class` | `string` | `null` | CSS class for the container |
 | `ChildContent` | `RenderFragment<TItem>` | — | Template for displaying each list item |
-| `KeySelector` | `Func<TItem, object>` | `null` | Function for selecting a key for an item |
+| `KeySelector` | `Func<TItem, object>` | `null` | Function for generating the key used in `@key`. If not set, the item itself is used |
 | `OnAdd` | `EventCallback<(TItem item, string sourceSortableId, bool isClone)>` | — | Event when adding an item to the list |
 | `OnUpdate` | `EventCallback<TItem>` | — | Event when updating the order of items |
 | `OnRemove` | `EventCallback<TItem>` | — | Event when removing an item from the list |
-| `OnError` | `EventCallback<Exception>` | — | Event for unhandled errors inside the component when calling converter or CloneFactory |
-| `Id` | `string` | `Guid.NewGuid().ToString()` | Unique component identifier |
-| `Group` | `string` | `Guid.NewGuid().ToString()` | Group name for interaction with other lists |
+| `OnException` | `EventCallback<Exception>` | — | Event for unhandled exceptions that occur inside the component during converter execution or object cloning |
+| `Id` | `string` | `Guid.NewGuid().ToString()` | Unique identifier of the component. Used internally for coordination between Sortable components and for identifying lists in converters. Must be globally unique |
+| `Group` | `string` | `Guid.NewGuid().ToString()` | Name of the group for interacting with other sortable instances |
 | `Pull` | `PullMode?` | `null` | Mode for pulling items from the list |
 | `PullGroups` | `string[]` | `null` | **Required when `Pull="PullMode.Groups"`.** Specifies the groups into which items from this list can be dragged |
 | `CloneFactory` | `Func<TItem, TItem>` | `null` | **Required when `Pull="PullMode.Clone"`.** A factory method used to create a clone of the dragged item |
@@ -126,9 +126,9 @@ var converters = new ConvertersBuilder<Employee>()
 | `Converters` | `Dictionary<string, Func<object, TItem>>` | `null` | Dictionary of converters: the key is the `Id` of another `SortableList`, and the value is a function that converts an item from that list to `TItem` |
 | `Sort` | `bool` | `true` | Enables or disables sorting of items within the list |
 | `Animation` | `int` | `150` | Animation duration in milliseconds |
-| `Handle` | `string` | `null` | CSS selector for elements that can be used for dragging |
-| `Filter` | `string` | `null` | CSS selector for elements that cannot be dragged |
-| `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the ghost element during dragging |
+| `Handle` | `string` | `null` | CSS selector for elements that can be dragged (e.g. ".my-handle") |
+| `Filter` | `string` | `null` | CSS selector for elements that cannot be dragged (e.g. ".ignore-elements") |
+| `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the placeholder during drag |
 | `ChosenClass` | `string` | `"sortable-chosen"` | CSS class for the chosen element |
 | `DragClass` | `string` | `"sortable-drag"` | CSS class for the dragged element |
 | `ForceFallback` | `bool` | `true` | Forces fallback mode for dragging |
@@ -138,13 +138,12 @@ var converters = new ConvertersBuilder<Employee>()
 
 | Parameter | Type | Default Value | Description |
 |----------|------|----------------------|-------------|
-| `Class` | `string` | `null` | CSS class for the drop zone container |
+| `Class` | `string` | `null` | CSS class for the container |
 | `OnDrop` | `EventCallback<object>` | — | Event when dropping an item in the zone |
-| `Id` | `string` | `Guid.NewGuid().ToString()` | Unique component identifier |
-| `Group` | `string` | `Guid.NewGuid().ToString()` | Group name for interaction with other lists |
+| `Group` | `string` | `Guid.NewGuid().ToString()` | Name of the group for interacting with other sortable instances |
 | `Put` | `PutMode?` | `null` | Mode for adding items to the zone |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
-| `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the ghost element during dragging |
+| `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the placeholder during drag |
 
 ### PullMode
 

@@ -1,6 +1,7 @@
 using BlazorSortable.Internal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.ComponentModel;
 
 namespace BlazorSortable;
 
@@ -23,6 +24,13 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public RenderFragment<TItem>? ChildContent { get; set; }
 
     /// <summary>
+    /// Function used to generate a stable key for each item, used in the <c>@key</c> directive for rendering.
+    /// If not provided, the item itself is used as the key.
+    /// </summary>
+    [Parameter]
+    public Func<TItem, object>? KeySelector { get; set; }
+
+    /// <summary>
     /// Event that occurs when an item is added to the list.
     /// </summary>
     [Parameter]
@@ -41,10 +49,37 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public EventCallback<TItem> OnRemove { get; set; }
 
     /// <summary>
-    /// Event that occurs when an unhandled error occurs inside the component.
+    /// Event for unhandled exceptions that occur inside the component during converter execution or object cloning.
     /// </summary>
     [Parameter]
-    public EventCallback<Exception> OnError { get; set; }
+    public EventCallback<Exception> OnException { get; set; }
+
+    /// <summary>
+    /// Event for unhandled exceptions that occur inside the component during converter execution or object cloning.
+    /// </summary>
+    [Parameter]
+    [Obsolete("Use OnException instead.")]
+    public EventCallback<Exception> OnError
+    {
+        get => OnException;
+        set => OnException = value;
+    }
+
+    /// <summary>
+    /// Unique identifier of the component. Must be globally unique across all SortableList instances.
+    /// </summary>
+    /// <remarks>
+    /// If not set explicitly, a GUID will be generated automatically.
+    /// This ID is required for internal coordination between Sortable components and for using converters.
+    /// If two SortableList are registered with the same ID, an <see cref="InvalidOperationException"/> will be thrown during rendering.
+    /// Set this manually only if you need to identify the component externally, e.g., to provide a converter for it.
+    /// </remarks>
+    [Parameter]
+    public string Id
+    {
+        get => id;
+        set => id = value;
+    }
 
     /// <summary>
     /// Mode for pulling items from the list.
@@ -53,10 +88,35 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public PullMode? Pull { get; set; }
 
     /// <summary>
-    /// Groups from which items can be pulled.
+    /// Array of group names from which items can be pulled.
     /// </summary>
+    /// <remarks>
+    /// Used only when <see cref="Pull"/> is set to <see cref="PullMode.Groups"/>.
+    /// Ignored in other pull modes.
+    /// </remarks>
     [Parameter]
     public string[]? PullGroups { get; set; }
+
+    /// <summary>
+    /// Factory function used to create a deep copy of an item when items are pulled in clone mode.
+    /// </summary>
+    /// <remarks>
+    /// Used only when <see cref="Pull"/> is set to <see cref="PullMode.Clone"/>.
+    /// If not provided in clone mode, item cloning will be skipped and null will be added instead.
+    /// </remarks>
+    [Parameter]
+    public Func<TItem, TItem>? CloneFactory { get; set; }
+
+    /// <summary>
+    /// Dictionary of converters for transforming items from other SortableLists.
+    /// </summary>
+    /// <remarks>
+    /// The key is the <c>Id</c> of another <see cref="SortableList{TItem}"/> that provides items,
+    /// and the value is a function that converts an item from that list to the target <typeparamref name="TItem"/> type.
+    /// This is used when items are dragged between lists with different data types.
+    /// </remarks>
+    [Parameter]
+    public Dictionary<string, Func<object, TItem>>? Converters { get; set; }
 
     /// <summary>
     /// Enables or disables sorting of items within the list.
@@ -107,24 +167,6 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </summary>
     [Parameter]
     public string FallbackClass { get; set; } = "sortable-fallback";
-
-    /// <summary>
-    /// Factory for creating item clones.
-    /// </summary>
-    [Parameter]
-    public Func<TItem, TItem>? CloneFactory { get; set; }
-
-    /// <summary>
-    /// Dictionary of converters for transforming items from other lists.
-    /// </summary>
-    [Parameter]
-    public Dictionary<string, Func<object, TItem>>? Converters { get; set; }
-
-    /// <summary>
-    /// Function for selecting a key for an item.
-    /// </summary>
-    [Parameter]
-    public Func<TItem, object>? KeySelector { get; set; }
 
     private protected override string InitMethodName => "init";
 
@@ -190,15 +232,22 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </summary>
     /// <param name="sourceSortableId">Source list identifier.</param>
     /// <param name="oldIndex">Item index in the source list.</param>
-    /// <param name="newIndex">Item index in the target list.</param>
     /// <param name="isClone">Flag indicating whether the item is a clone.</param>
+    /// <param name="newIndex">Item index in the target list.</param>
     [JSInvokable]
-    public void OnAddJs(string sourceSortableId, int oldIndex, int newIndex, bool isClone)
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public void OnAddJs(string sourceSortableId, int oldIndex, bool isClone, int newIndex)
     {
         var sourceSortable = SortableService.GetSortableList(sourceSortableId)!;
         sourceSortable.SuppressNextRemove = !isClone;
 
         var sourceObject = sourceSortable[oldIndex]!;
+
+        if (isClone)
+        {
+            sourceObject = sourceSortable.TryCloneItem(sourceObject);
+            if (sourceObject is null) return;
+        }
 
         TItem? itemToAdd = default;
 
@@ -210,20 +259,13 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
             }
             catch (Exception ex)
             {
-                OnError.InvokeAsync(ex);
+                OnException.InvokeAsync(ex);
                 return;
             }
         }
         else if (sourceObject is TItem sourceItem)
         {
-            if (isClone)
-            {
-                itemToAdd = (TItem?)sourceSortable.TryCloneItem(sourceItem);
-            }
-            else
-            {
-                itemToAdd = sourceItem;
-            }
+            itemToAdd = sourceItem;
         }
 
         if (itemToAdd is null) return;
@@ -242,6 +284,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// <param name="oldIndex">Item index before moving.</param>
     /// <param name="newIndex">Item index after moving.</param>
     [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public void OnUpdateJs(int oldIndex, int newIndex)
     {
         var itemToMove = Items[oldIndex];
@@ -258,6 +301,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </summary>
     /// <param name="index">Index of the item to remove.</param>
     [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public void OnRemoveJs(int index)
     {
         var sortableList = (ISortableList)this;
@@ -303,7 +347,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         }
         catch (Exception ex)
         {
-            OnError.InvokeAsync(ex);
+            OnException.InvokeAsync(ex);
             return null;
         }
     }

@@ -9,19 +9,19 @@ namespace BlazorSortable.Internal;
 public abstract class SortableBase : ComponentBase, IAsyncDisposable
 {
     /// <summary>
-    /// Unique component identifier.
+    /// CSS class applied to the root container of the Sortable component.
     /// </summary>
     [Parameter]
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string? Class { get; set; }
 
     /// <summary>
-    /// Group name for interaction with other lists.
+    /// Group name for interaction with other Sortable components.
     /// </summary>
     [Parameter]
     public string Group { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
-    /// Mode for adding items to the list.
+    /// Mode for adding items to this Sortable component.
     /// </summary>
     [Parameter]
     public PutMode? Put { get; set; }
@@ -29,6 +29,10 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
     /// <summary>
     /// Array of group names from which items can be added.
     /// </summary>
+    /// <remarks>
+    /// Used only when <see cref="Put"/> is set to <see cref="PutMode.Groups"/>.
+    /// Ignored in other put modes.
+    /// </remarks>
     [Parameter]
     public string[]? PutGroups { get; set; }
 
@@ -38,17 +42,12 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
     [Parameter]
     public string GhostClass { get; set; } = "sortable-ghost";
 
-    /// <summary>
-    /// CSS class for the list container.
-    /// </summary>
-    [Parameter]
-    public string? Class { get; set; }
-
     [Inject] private protected ISortableService SortableService { get; set; } = default!;
     [Inject] private protected IJSRuntime JS { get; set; } = default!;
 
     private protected abstract string InitMethodName { get; }
 
+    private protected string id = Guid.NewGuid().ToString();
     private protected DotNetObjectReference<SortableBase>? selfReference;
     private protected IJSObjectReference? jsModule;
 
@@ -67,7 +66,7 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
 
         var options = BuildOptions();
 
-        await jsModule.InvokeVoidAsync(InitMethodName, Id, options, selfReference);
+        await jsModule.InvokeVoidAsync(InitMethodName, id, options, selfReference);
 
         await OnAfterFirstRenderAsync();
     }
@@ -96,7 +95,7 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
 
         if (jsModule is not null)
         {
-            await jsModule.InvokeVoidAsync("destroy", Id);
+            await jsModule.InvokeVoidAsync("destroy", id);
             await jsModule.DisposeAsync();
         }
 

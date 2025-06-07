@@ -1,6 +1,7 @@
 using BlazorSortable.Internal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.ComponentModel;
 
 namespace BlazorSortable;
 
@@ -14,6 +15,13 @@ public partial class SortableDropZone : SortableBase
     /// </summary>
     [Parameter]
     public EventCallback<object> OnDrop { get; set; }
+
+    /// <summary>
+    /// Unique component identifier.
+    /// </summary>
+    [Parameter]
+    [Obsolete("Id is now generated automatically only. Manual setting is no longer supported.")]
+    public string? Id { get; set; }
 
     private protected override string InitMethodName => "initDropZone";
 
@@ -40,9 +48,10 @@ public partial class SortableDropZone : SortableBase
     /// <summary>
     /// Event handler for adding an item, called from JavaScript.
     /// </summary>
-    /// <param name="sourceSortableId">Source list identifier.</param>
-    /// <param name="index">Item index in the source list.</param>
+    /// <param name="sourceSortableId">Source SortableList identifier.</param>
+    /// <param name="index">Item index in the source SortableList.</param>
     [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public void OnAddJs(string sourceSortableId, int index)
     {
         var sourceSortable = SortableService.GetSortableList(sourceSortableId)!;

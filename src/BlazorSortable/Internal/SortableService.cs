@@ -8,7 +8,10 @@ internal class SortableService : ISortableService
 
     public void RegisterSortableList(string id, ISortableList sortableList)
     {
-        _sortableLists[id] = sortableList;
+        if (!_sortableLists.TryAdd(id, sortableList))
+        {
+            throw new InvalidOperationException($"A SortableList with ID '{id}' is already registered.");
+        }
     }
 
     public void UnregisterSortableList(string id)

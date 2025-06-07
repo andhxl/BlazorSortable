@@ -4,7 +4,7 @@
     el._sortable = new Sortable(el, {
         ...options,
         onAdd: (event) => {
-            component.invokeMethodAsync('OnAddJs', event.from.id, event.oldIndex, event.newIndex, event.pullMode === 'clone');
+            component.invokeMethodAsync('OnAddJs', event.from.id, event.oldIndex, event.pullMode === 'clone', event.newIndex);
         },
         onUpdate: (event) => {
             // Revert the DOM to match the .NET state
