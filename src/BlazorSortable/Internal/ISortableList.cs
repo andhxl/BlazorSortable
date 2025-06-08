@@ -2,9 +2,7 @@
 
 internal interface ISortableList
 {
-    object? this[int index] { get; }
-
-    object? TryCloneItem(object item);
+    object? GetItem(int index);
 
     bool SuppressNextRemove { get; set; }
 }

@@ -8,20 +8,24 @@
         <div class="list-column">
             <h3>List 1</h3>
             <SortableList TItem="Item1"
-                      Items="GenerateItem1List(3)"
-                      Group="group1"
-                      Class="sortable-list"
-                      Handle=".my-handle">
+                          Items="GenerateItem1List(3)"
+                          Group="group1"
+                          OnUpdate="OnUpdateItem1"
+                          Class="sortable-list"
+                          Handle=".my-handle">
                 <Item1Component Item="context" />
             </SortableList>
         </div>
         <div class="list-column">
             <h3>List 2</h3>
             <SortableList TItem="Item1"
-                      Items="GenerateItem1List(3, 4)"
-                      Group="group1"
-                      Class="sortable-list"
-                      Handle=".my-handle">
+                          Items="GenerateItem1List(3, 4)"
+                          Group="group1"
+                          OnAdd="OnAddItem1"
+                          OnUpdate="OnUpdateItem1"
+                          OnRemove="OnRemoveItem1"
+                          Class="sortable-list"
+                          Handle=".my-handle">
                 <Item1Component Item="context" />
             </SortableList>
         </div>
@@ -34,12 +38,14 @@
         <div class="list-column">
             <h3>List 1</h3>
             <SortableList TItem="Item1"
-                      Items="GenerateItem1List(3)"
-                      Group="group2"
-                      Pull="PullMode.Clone"
-                      CloneFactory="@(i => new Item1 { Name = i.Name + "_clone" })"
-                      Put="PutMode.False"
-                      Class="sortable-list">
+                          Items="GenerateItem1List(3)"
+                          Group="group2"
+                          OnUpdate="OnUpdateItem1"
+                          Pull="PullMode.Clone"
+                          OnCloneException="OnCloneException"
+                          CloneFactory="@(i => new Item1 { Name = i.Name + "_clone" })"
+                          Put="PutMode.False"
+                          Class="sortable-list">
                 <ChildContent Context="context">
                     <Item1Component Item="context" />
                 </ChildContent>
@@ -48,9 +54,9 @@
         <div class="list-column">
             <h3>List 2</h3>
             <SortableList TItem="Item1"
-                      Items="GenerateItem1List(3, 4)"
-                      Group="group2"
-                      Class="sortable-list">
+                          Items="GenerateItem1List(3, 4)"
+                          Group="group2"
+                          Class="sortable-list">
                 <Item1Component Item="@context" />
             </SortableList>
         </div>
@@ -63,35 +69,36 @@
         <div class="list-column">
             <h3>List 1</h3>
             <SortableList TItem="Item1"
-                      Items="GenerateItem1List(3)"
-                      Id="list1"
-                      Group="group3"
-                      Put="PutMode.False"
-                      Class="sortable-list">
+                          Items="GenerateItem1List(3)"
+                          Id="list1"
+                          Group="group3"
+                          Put="PutMode.False"
+                          Class="sortable-list">
                 <Item1Component Item="context" />
             </SortableList>
         </div>
         <div class="list-column">
             <h3>List 2 (missing converter)</h3>
             <SortableList TItem="Item1"
-                      Items="GenerateItem1List(3, 4)"
-                      Group="group3"
-                      Id="list2"
-                      Put="PutMode.False"
-                      Class="sortable-list">
+                          Items="GenerateItem1List(3, 4)"
+                          Group="group3"
+                          Id="list2"
+                          Put="PutMode.False"
+                          Class="sortable-list">
                 <Item1Component Item="context" />
             </SortableList>
         </div>
         <div class="list-column">
             <h3>List 3</h3>
             <SortableList TItem="Item2"
-                      Items="GenerateItem2List(2)"
-                      Put="PutMode.Groups"
-                      PutGroups="@(["group3"])"
-                      Converters="@list7Converters"
-                      Pull="PullMode.False"
-                      Class="sortable-list"
-                      Context="item">
+                          Items="GenerateItem2List(2)"
+                          Put="PutMode.Groups"
+                          PutGroups="@(["group3"])"
+                          Converters="@list7Converters"
+                          OnConvertException="OnConvertException"
+                          Pull="PullMode.False"
+                          Class="sortable-list"
+                          Context="item">
                 @($"{item.Name}: {item.Value} ({item.Type})")
             </SortableList>
         </div>
@@ -104,17 +111,21 @@
         <div class="list-column">
             <h3>List</h3>
             <SortableList TItem="Item1"
-                      Items="GenerateItem1List(4)"
-                      Group="drop"
-                      Pull="PullMode.True"
-                      DragClass="dragt"
-                      Class="sortable-list">
+                          Items="GenerateItem1List(4)"
+                          Group="drop"
+                          Pull="PullMode.True"
+                          DragClass="dragt"
+                          Class="sortable-list">
                 <Item1Component Item="context" />
             </SortableList>
         </div>
         <div class="list-column">
             <h3>Drop zone</h3>
-            <SortableDropZone Class="drop-zone" GhostClass="ghostt" Put="PutMode.Groups" PutGroups="@(["drop", "group3"])" />
+            <SortableDropZone Class="drop-zone"
+                              GhostClass="ghostt"
+                              Put="PutMode.Groups"
+                              
+                              PutGroups="@(["drop", "group3"])" />
         </div>
     </div>
 </div>
@@ -150,8 +161,33 @@
 
     private List<object> TrashItems = new();
 
-    private void OnTrashAdd((int oldIndex, int newIndex, string sourceId, bool isClone) args)
+    private void OnAddItem1((Item1 item, string sourceId, bool isClone, int oldIndex, int newIndex) args)
     {
-        TrashItems.Clear();
+
+    }
+
+    private void OnUpdateItem1((Item1 item, int oldIndex, int newIndex) args)
+    {
+
+    }
+
+    private void OnRemoveItem1((Item1 item, int index) args)
+    {
+
+    }
+
+    private void OnDrop((object item, string sourceId, bool isClone, int index) args)
+    {
+
+    }
+
+    private void OnCloneException(Exception ex)
+    {
+
+    }
+
+    private void OnConvertException(Exception ex)
+    {
+
     }
 }

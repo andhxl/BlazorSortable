@@ -31,41 +31,6 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public Func<TItem, object>? KeySelector { get; set; }
 
     /// <summary>
-    /// Event that occurs when an item is added to the list.
-    /// </summary>
-    [Parameter]
-    public EventCallback<(TItem item, string sourceSortableId, bool isClone)> OnAdd { get; set; }
-
-    /// <summary>
-    /// Event that occurs when the order of items in the list is updated.
-    /// </summary>
-    [Parameter]
-    public EventCallback<TItem> OnUpdate { get; set; }
-
-    /// <summary>
-    /// Event that occurs when an item is removed from the list.
-    /// </summary>
-    [Parameter]
-    public EventCallback<TItem> OnRemove { get; set; }
-
-    /// <summary>
-    /// Event for unhandled exceptions that occur inside the component during converter execution or object cloning.
-    /// </summary>
-    [Parameter]
-    public EventCallback<Exception> OnException { get; set; }
-
-    /// <summary>
-    /// Event for unhandled exceptions that occur inside the component during converter execution or object cloning.
-    /// </summary>
-    [Parameter]
-    [Obsolete("Use OnException instead.")]
-    public EventCallback<Exception> OnError
-    {
-        get => OnException;
-        set => OnException = value;
-    }
-
-    /// <summary>
     /// Unique identifier of the component. Must be globally unique across all SortableList instances.
     /// </summary>
     /// <remarks>
@@ -108,6 +73,16 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public Func<TItem, TItem>? CloneFactory { get; set; }
 
     /// <summary>
+    /// Called when an unhandled exception occurs during object cloning.
+    /// </summary>
+    /// <remarks>
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged 
+    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// </remarks>
+    [Parameter]
+    public Action<Exception>? OnCloneException { get; set; }
+
+    /// <summary>
     /// Dictionary of converters for transforming items from other SortableLists.
     /// </summary>
     /// <remarks>
@@ -117,6 +92,16 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </remarks>
     [Parameter]
     public Dictionary<string, Func<object, TItem>>? Converters { get; set; }
+
+    /// <summary>
+    /// Called when an unhandled exception occurs during converter execution.
+    /// </summary>
+    /// <remarks>
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged 
+    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// </remarks>
+    [Parameter]
+    public Action<Exception>? OnConvertException { get; set; }
 
     /// <summary>
     /// Enables or disables sorting of items within the list.
@@ -167,6 +152,45 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </summary>
     [Parameter]
     public string FallbackClass { get; set; } = "sortable-fallback";
+
+    /// <summary>
+    /// Event that occurs when an item is added to the list.
+    /// </summary>
+    /// <remarks>
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged
+    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// </remarks>
+    [Parameter]
+    public Action<(TItem item, string sourceId, bool isClone, int oldIndex, int newIndex)>? OnAdd { get; set; }
+
+    /// <summary>
+    /// Event that occurs when the order of items in the list is updated.
+    /// </summary>
+    /// <remarks>
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged
+    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// </remarks>
+    [Parameter]
+    public Action<(TItem item, int oldIndex, int newIndex)>? OnUpdate { get; set; }
+
+    /// <summary>
+    /// Event that occurs when an item is removed from the list.
+    /// </summary>
+    /// <remarks>
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged
+    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// </remarks>
+    [Parameter]
+    public Action<(TItem item, int index)>? OnRemove { get; set; }
+
+    /// <summary>
+    /// Validates required parameters during component initialization.
+    /// Throws <see cref="ArgumentNullException"/> if any required parameter is null.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        ArgumentNullException.ThrowIfNull(Items);
+    }
 
     private protected override string InitMethodName => "init";
 
@@ -230,38 +254,25 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// <summary>
     /// Event handler for adding an item, called from JavaScript.
     /// </summary>
-    /// <param name="sourceSortableId">Source list identifier.</param>
-    /// <param name="oldIndex">Item index in the source list.</param>
+    /// <param name="sourceId">Source list identifier.</param>
     /// <param name="isClone">Flag indicating whether the item is a clone.</param>
+    /// <param name="oldIndex">Item index in the source list.</param>
     /// <param name="newIndex">Item index in the target list.</param>
     [JSInvokable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public void OnAddJs(string sourceSortableId, int oldIndex, bool isClone, int newIndex)
+    public void OnAddJs(string sourceId, bool isClone, int oldIndex, int newIndex)
     {
-        var sourceSortable = SortableService.GetSortableList(sourceSortableId)!;
+        var sourceSortable = SortableService.GetSortableList(sourceId)!;
         sourceSortable.SuppressNextRemove = !isClone;
 
-        var sourceObject = sourceSortable[oldIndex]!;
-
-        if (isClone)
-        {
-            sourceObject = sourceSortable.TryCloneItem(sourceObject);
-            if (sourceObject is null) return;
-        }
+        var sourceObject = sourceSortable.GetItem(oldIndex);
+        if (sourceObject is null) return;
 
         TItem? itemToAdd = default;
 
-        if (Converters is not null && Converters.ContainsKey(sourceSortableId))
+        if (Converters is not null && Converters.ContainsKey(sourceId))
         {
-            try
-            {
-                itemToAdd = Converters[sourceSortableId](sourceObject);
-            }
-            catch (Exception ex)
-            {
-                OnException.InvokeAsync(ex);
-                return;
-            }
+            itemToAdd = TryConvertItem(sourceId, sourceObject);
         }
         else if (sourceObject is TItem sourceItem)
         {
@@ -275,7 +286,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         StateHasChanged();
 
-        OnAdd.InvokeAsync((itemToAdd, sourceSortableId, isClone));
+        OnAdd?.Invoke((itemToAdd, sourceId, isClone, oldIndex, newIndex));
     }
 
     /// <summary>
@@ -293,7 +304,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         StateHasChanged();
 
-        OnUpdate.InvokeAsync(itemToMove);
+        OnUpdate?.Invoke((itemToMove, oldIndex, newIndex));
     }
 
     /// <summary>
@@ -304,11 +315,10 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void OnRemoveJs(int index)
     {
-        var sortableList = (ISortableList)this;
-
-        if (sortableList.SuppressNextRemove)
+        var sortable = (ISortableList)this;
+        if (sortable.SuppressNextRemove)
         {
-            sortableList.SuppressNextRemove = false;
+            sortable.SuppressNextRemove = false;
             return;
         }
 
@@ -317,7 +327,44 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         StateHasChanged();
 
-        OnRemove.InvokeAsync(itemToRemove);
+        OnRemove?.Invoke((itemToRemove, index));
+    }
+
+    object? ISortableList.GetItem(int index)
+    {
+        var item = Items[index];
+
+        return Pull == PullMode.Clone ? TryCloneItem(item) : item;
+    }
+
+    bool ISortableList.SuppressNextRemove { get; set; }
+
+    private TItem? TryCloneItem(TItem item)
+    {
+        if (CloneFactory is null) return default;
+
+        try
+        {
+            return CloneFactory(item);
+        }
+        catch (Exception ex)
+        {
+            OnCloneException?.Invoke(ex);
+            return default;
+        }
+    }
+
+    private TItem? TryConvertItem(string sortableId, object item)
+    {
+        try
+        {
+            return Converters![sortableId](item);
+        }
+        catch (Exception ex)
+        {
+            OnConvertException?.Invoke(ex);
+            return default;
+        }
     }
 
     private void InsertItem(int index, TItem item)
@@ -331,28 +378,6 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
             Items.Add(item);
         }
     }
-
-    object? ISortableList.this[int index]
-    {
-        get => Items[index];
-    }
-
-    object? ISortableList.TryCloneItem(object item)
-    {
-        if (CloneFactory is null) return null;
-
-        try
-        {
-            return CloneFactory((TItem)item);
-        }
-        catch (Exception ex)
-        {
-            OnException.InvokeAsync(ex);
-            return null;
-        }
-    }
-
-    bool ISortableList.SuppressNextRemove { get; set; }
 
     private protected override ValueTask DisposeAsyncCore()
     {

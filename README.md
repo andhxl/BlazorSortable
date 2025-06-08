@@ -18,7 +18,7 @@ dotnet add package BlazorSortable
 Add to your .csproj file:
 ```xml
 <ItemGroup>
-    <PackageReference Include="BlazorSortable" Version="1.*" />
+    <PackageReference Include="BlazorSortable" Version="2.*" />
 </ItemGroup>
 ```
 
@@ -101,29 +101,41 @@ var converters = new ConvertersBuilder<Employee>()
 </SortableList>
 ```
 
+## Event Handling Features
+
+Events use `Action<T>` instead of the standard `EventCallback<T>`.
+
+**Reason:** `EventCallback.InvokeAsync` automatically triggers `StateHasChanged()` in the parent component, which can lead to issues:
+
+- Object recreation in collections on every event
+- Conflicts between DOM and data model
+- Element duplication in lists
+
+`Action` executes without automatic parent re-rendering.
+
+Both synchronous and asynchronous handlers are supported. Asynchronous handlers execute in fire-and-forget mode.
+
 ## Component Parameters
 
 ### SortableList
 
-| Parameter | Type | Default Value | Description |
+| Parameter | Type | Default | Description |
 |----------|------|----------------------|-------------|
-| `TItem` | *(type parameter)* | — | The type of item in the list |
-| `Items` | `IList<TItem>` | — | **Required.** List of items to display and sort |
+| `TItem` | `<T>` | **Required** | The type of item in the list |
+| `Items` | `IList<TItem>` | **Required** | List of items to display and sort |
 | `Class` | `string` | `null` | CSS class for the container |
-| `ChildContent` | `RenderFragment<TItem>` | — | Template for displaying each list item |
+| `ChildContent` | `RenderFragment<TItem>` | `null` | Template for displaying each list item |
 | `KeySelector` | `Func<TItem, object>` | `null` | Function for generating the key used in `@key`. If not set, the item itself is used |
-| `OnAdd` | `EventCallback<(TItem item, string sourceSortableId, bool isClone)>` | — | Event when adding an item to the list |
-| `OnUpdate` | `EventCallback<TItem>` | — | Event when updating the order of items |
-| `OnRemove` | `EventCallback<TItem>` | — | Event when removing an item from the list |
-| `OnException` | `EventCallback<Exception>` | — | Event for unhandled exceptions that occur inside the component during converter execution or object cloning |
-| `Id` | `string` | `Guid.NewGuid().ToString()` | Unique identifier of the component. Used internally for coordination between Sortable components and for identifying lists in converters. Must be globally unique |
-| `Group` | `string` | `Guid.NewGuid().ToString()` | Name of the group for interacting with other sortable instances |
+| `Id` | `string` | `Random GUID` | Unique identifier of the component. Used internally for coordination between Sortable components and for identifying lists in converters. Must be globally unique |
+| `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
 | `Pull` | `PullMode?` | `null` | Mode for pulling items from the list |
 | `PullGroups` | `string[]` | `null` | **Required when `Pull="PullMode.Groups"`.** Specifies the groups into which items from this list can be dragged |
 | `CloneFactory` | `Func<TItem, TItem>` | `null` | **Required when `Pull="PullMode.Clone"`.** A factory method used to create a clone of the dragged item |
+| `OnCloneException` | `Action<Exception>` | `null` | Raised when an exception occurs during object cloning |
 | `Put` | `PutMode?` | `null` | Mode for adding items to the list |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
 | `Converters` | `Dictionary<string, Func<object, TItem>>` | `null` | Dictionary of converters: the key is the `Id` of another `SortableList`, and the value is a function that converts an item from that list to `TItem` |
+| `OnConvertException` | `Action<Exception>` | `null` | Raised when an exception occurs during item conversion |
 | `Sort` | `bool` | `true` | Enables or disables sorting of items within the list |
 | `Animation` | `int` | `150` | Animation duration in milliseconds |
 | `Handle` | `string` | `null` | CSS selector for elements that can be dragged (e.g. ".my-handle") |
@@ -133,17 +145,20 @@ var converters = new ConvertersBuilder<Employee>()
 | `DragClass` | `string` | `"sortable-drag"` | CSS class for the dragged element |
 | `ForceFallback` | `bool` | `true` | Forces fallback mode for dragging |
 | `FallbackClass` | `string` | `"sortable-fallback"` | CSS class for the element in fallback mode |
+| `OnAdd` | `Action<(TItem item, string sourceId, bool isClone, int oldIndex, int newIndex)>` | `null` | Raised when an item is added to the list |
+| `OnUpdate` | `Action<(TItem item, int oldIndex, int newIndex)>` | `null` | Raised when the order of items is changed |
+| `OnRemove` | `Action<(TItem item, int index)>` | `null` | Raised when an item is removed from the list |
 
 ### SortableDropZone
 
-| Parameter | Type | Default Value | Description |
+| Parameter | Type | Default | Description |
 |----------|------|----------------------|-------------|
 | `Class` | `string` | `null` | CSS class for the container |
-| `OnDrop` | `EventCallback<object>` | — | Event when dropping an item in the zone |
-| `Group` | `string` | `Guid.NewGuid().ToString()` | Name of the group for interacting with other sortable instances |
+| `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
 | `Put` | `PutMode?` | `null` | Mode for adding items to the zone |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
 | `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the placeholder during drag |
+| `OnDrop` | `Action<(object item, string sourceId, bool isClone, int index)>` | `null` | Event when dropping an item in the zone |
 
 ### PullMode
 

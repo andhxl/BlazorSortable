@@ -4,7 +4,7 @@
     el._sortable = new Sortable(el, {
         ...options,
         onAdd: (event) => {
-            component.invokeMethodAsync('OnAddJs', event.from.id, event.oldIndex, event.pullMode === 'clone', event.newIndex);
+            component.invokeMethodAsync('OnAddJs', event.from.id, event.pullMode === 'clone', event.oldIndex, event.newIndex);
         },
         onUpdate: (event) => {
             // Revert the DOM to match the .NET state
@@ -34,7 +34,7 @@ export function initDropZone(id, options, component) {
     el._sortable = new Sortable(el, {
         ...options,
         onAdd: (event) => {
-            component.invokeMethodAsync('OnAddJs', event.from.id, event.oldIndex);
+            component.invokeMethodAsync('OnAddJs', event.from.id, event.pullMode === 'clone', event.oldIndex);
         }
     });
 }

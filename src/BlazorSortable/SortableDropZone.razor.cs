@@ -13,15 +13,12 @@ public partial class SortableDropZone : SortableBase
     /// <summary>
     /// Event that occurs when an element is dropped into the zone.
     /// </summary>
+    /// <remarks>
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged
+    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// </remarks>
     [Parameter]
-    public EventCallback<object> OnDrop { get; set; }
-
-    /// <summary>
-    /// Unique component identifier.
-    /// </summary>
-    [Parameter]
-    [Obsolete("Id is now generated automatically only. Manual setting is no longer supported.")]
-    public string? Id { get; set; }
+    public Action<(object item, string sourceId, bool isClone, int index)>? OnDrop { get; set; }
 
     private protected override string InitMethodName => "initDropZone";
 
@@ -48,15 +45,17 @@ public partial class SortableDropZone : SortableBase
     /// <summary>
     /// Event handler for adding an item, called from JavaScript.
     /// </summary>
-    /// <param name="sourceSortableId">Source SortableList identifier.</param>
+    /// <param name="sourceId">Source SortableList identifier.</param>
+    /// <param name="isClone">Flag indicating whether the item is a clone.</param>
     /// <param name="index">Item index in the source SortableList.</param>
     [JSInvokable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public void OnAddJs(string sourceSortableId, int index)
+    public void OnAddJs(string sourceId, bool isClone, int index)
     {
-        var sourceSortable = SortableService.GetSortableList(sourceSortableId)!;
-        var sourceObject = sourceSortable[index]!;
+        var sortable = SortableService.GetSortableList(sourceId)!;
+        var item = sortable.GetItem(index);
+        if (item is null) return;
 
-        OnDrop.InvokeAsync(sourceObject);
+        OnDrop?.Invoke((item, sourceId, isClone, index));
     }
 }
