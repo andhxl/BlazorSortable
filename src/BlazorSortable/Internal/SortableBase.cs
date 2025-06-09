@@ -15,6 +15,12 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
     public string? Class { get; set; }
 
     /// <summary>
+    /// Inline CSS styles applied to the root container of the Sortable component.
+    /// </summary>
+    [Parameter]
+    public string? Style { get; set; }
+
+    /// <summary>
     /// Group name for interaction with other Sortable components.
     /// </summary>
     [Parameter]

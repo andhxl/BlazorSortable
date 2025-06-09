@@ -133,6 +133,7 @@ Events use `Action<T>` instead of `EventCallback<T>`.
 | `TItem` | — | — | The type of items in the sortable list |
 | `Items` | `IList<TItem>` | **Required** | List of items to display and sort |
 | `Class` | `string` | `null` | CSS class for the container |
+| `Style` | `string` | `null` | Inline CSS styles for the container |
 | `ChildContent` | `RenderFragment<TItem>` | `null` | Template for displaying each list item. Can be a component, HTML elements, or any Razor markup |
 | `KeySelector` | `Func<TItem, object>` | `null` | Function for generating the key used in `@key`. If not set, the item itself is used |
 | `Id` | `string` | `Random GUID` | Unique identifier of the component. Used internally for coordination between Sortable components and for identifying lists in converters. Must be globally unique |
@@ -163,6 +164,7 @@ Events use `Action<T>` instead of `EventCallback<T>`.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `Class` | `string` | `null` | CSS class for the container |
+| `Style` | `string` | `null` | Inline CSS styles for the container |
 | `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
 | `Put` | `PutMode` | `null` | Mode for adding items to the zone |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
