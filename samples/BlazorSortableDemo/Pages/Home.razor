@@ -7,10 +7,8 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List 1</h3>
-            <SortableList TItem="Item1"
-                          Items="GenerateItem1List(3)"
+            <SortableList Items="GenerateItem1List(3)"
                           Group="group1"
-                          OnUpdate="OnUpdateItem1"
                           Class="sortable-list"
                           Handle=".my-handle">
                 <Item1Component Item="context" />
@@ -18,8 +16,7 @@
         </div>
         <div class="list-column">
             <h3>List 2</h3>
-            <SortableList TItem="Item1"
-                          Items="GenerateItem1List(3, 4)"
+            <SortableList Items="GenerateItem1List(3, 4)"
                           Group="group1"
                           OnAdd="OnAddItem1"
                           OnUpdate="OnUpdateItem1"
@@ -37,13 +34,11 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List 1</h3>
-            <SortableList TItem="Item1"
-                          Items="GenerateItem1List(3)"
+            <SortableList Items="GenerateItem1List(3)"
                           Group="group2"
-                          OnUpdate="OnUpdateItem1"
                           Pull="PullMode.Clone"
-                          OnCloneException="OnCloneException"
                           CloneFactory="@(i => new Item1 { Name = i.Name + "_clone" })"
+                          OnCloneException="OnCloneException"
                           Put="PutMode.False"
                           Class="sortable-list">
                 <ChildContent Context="context">
@@ -53,8 +48,7 @@
         </div>
         <div class="list-column">
             <h3>List 2</h3>
-            <SortableList TItem="Item1"
-                          Items="GenerateItem1List(3, 4)"
+            <SortableList Items="GenerateItem1List(3, 4)"
                           Group="group2"
                           Class="sortable-list">
                 <Item1Component Item="@context" />
@@ -68,8 +62,7 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List 1</h3>
-            <SortableList TItem="Item1"
-                          Items="GenerateItem1List(3)"
+            <SortableList Items="GenerateItem1List(3)"
                           Id="list1"
                           Group="group3"
                           Put="PutMode.False"
@@ -79,8 +72,7 @@
         </div>
         <div class="list-column">
             <h3>List 2 (missing converter)</h3>
-            <SortableList TItem="Item1"
-                          Items="GenerateItem1List(3, 4)"
+            <SortableList Items="GenerateItem1List(3, 4)"
                           Group="group3"
                           Id="list2"
                           Put="PutMode.False"
@@ -90,8 +82,7 @@
         </div>
         <div class="list-column">
             <h3>List 3</h3>
-            <SortableList TItem="Item2"
-                          Items="GenerateItem2List(2)"
+            <SortableList Items="GenerateItem2List(2)"
                           Put="PutMode.Groups"
                           PutGroups="@(["group3"])"
                           Converters="@list7Converters"
@@ -110,8 +101,7 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List</h3>
-            <SortableList TItem="Item1"
-                          Items="GenerateItem1List(4)"
+            <SortableList Items="GenerateItem1List(4)"
                           Group="drop"
                           Pull="PullMode.True"
                           DragClass="dragt"
@@ -124,7 +114,6 @@
             <SortableDropZone Class="drop-zone"
                               GhostClass="ghostt"
                               Put="PutMode.Groups"
-                              
                               PutGroups="@(["drop", "group3"])" />
         </div>
     </div>
@@ -158,8 +147,6 @@
             Name = i1.Name + " from list2",
             Value = 50
         });
-
-    private List<object> TrashItems = new();
 
     private void OnAddItem1((Item1 item, string sourceId, bool isClone, int oldIndex, int newIndex) args)
     {

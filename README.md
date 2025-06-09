@@ -18,13 +18,18 @@ dotnet add package BlazorSortable
 Add to your .csproj file:
 ```xml
 <ItemGroup>
-    <PackageReference Include="BlazorSortable" Version="2.*" />
+  <PackageReference Include="BlazorSortable" Version="2.*" />
 </ItemGroup>
 ```
 
 ## Setup
 
-1. Add the SortableJS library to `index.html` (for Blazor WebAssembly) or `_host.cshtml` (for Blazor Server) using one of the following methods:
+1. Add the SortableJS library to:
+    - `Components/App.razor` (for Blazor Web App)
+    - `Pages/_Host.cshtml` (for Blazor Server)
+    - `wwwroot/index.html` (for Blazor WebAssembly)
+
+    Using one of the following methods:
 
     a) Via CDN:
     ```html
@@ -42,7 +47,7 @@ Add to your .csproj file:
     3. Place the `Sortable.min.js` file in the created folder
     4. Ensure the path in the script tag matches the file location
 
-2. (Optional) Add base styles to `index.html` or `_host.cshtml`:
+2. (Optional) Add base styles to the same file where you added the script:
 ```html
 <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css" />
 ```
@@ -65,12 +70,26 @@ builder.Services.AddSortableServices();
 
 ### SortableList
 
+#### With a component
 ```razor
-<SortableList TItem="Person"
-              Items="Persons"
+<SortableList Items="Persons"
               Class="my-sortable-list"
               Group="group1">
     <PersonComponent Person="context" />
+</SortableList>
+```
+
+#### With inline HTML content
+```razor
+<SortableList Items="Persons"
+              Class="my-sortable-list"
+              Group="group1"
+              Context="person">
+    <div class="person-card">
+        <h4>@person.Name</h4>
+        <p>@person.Email</p>
+        <span class="badge">@person.Department</span>
+    </div>
 </SortableList>
 ```
 
@@ -93,46 +112,36 @@ var converters = new ConvertersBuilder<Employee>()
     .Add<Student>("studentList", s => new Employee { Name = s.Name });
 
 // Using in component
-<SortableList TItem="Employee"
-              Items="Employees"
+<SortableList Items="Employees"
               Converters="converters"
               Group="group1">
     <ItemComponent Item="context" />
 </SortableList>
 ```
 
-## Event Handling Features
+## Events
 
-Events use `Action<T>` instead of the standard `EventCallback<T>`.
-
-**Reason:** `EventCallback.InvokeAsync` automatically triggers `StateHasChanged()` in the parent component, which can lead to issues:
-
-- Object recreation in collections on every event
-- Conflicts between DOM and data model
-- Element duplication in lists
-
-`Action` executes without automatic parent re-rendering.
-
-Both synchronous and asynchronous handlers are supported. Asynchronous handlers execute in fire-and-forget mode.
+Events use `Action<T>` instead of `EventCallback<T>`.
+**Reason:** `EventCallback.InvokeAsync` automatically triggers `StateHasChanged()` in the parent component. For this component, this causes conflicts between DOM and data model.
 
 ## Component Parameters
 
 ### SortableList
 
 | Parameter | Type | Default | Description |
-|----------|------|----------------------|-------------|
-| `TItem` | `<T>` | **Required** | The type of item in the list |
+|-----------|------|---------|-------------|
+| `TItem` | — | — | The type of items in the sortable list |
 | `Items` | `IList<TItem>` | **Required** | List of items to display and sort |
 | `Class` | `string` | `null` | CSS class for the container |
-| `ChildContent` | `RenderFragment<TItem>` | `null` | Template for displaying each list item |
+| `ChildContent` | `RenderFragment<TItem>` | `null` | Template for displaying each list item. Can be a component, HTML elements, or any Razor markup |
 | `KeySelector` | `Func<TItem, object>` | `null` | Function for generating the key used in `@key`. If not set, the item itself is used |
 | `Id` | `string` | `Random GUID` | Unique identifier of the component. Used internally for coordination between Sortable components and for identifying lists in converters. Must be globally unique |
 | `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
-| `Pull` | `PullMode?` | `null` | Mode for pulling items from the list |
+| `Pull` | `PullMode` | `null` | Mode for pulling items from the list |
 | `PullGroups` | `string[]` | `null` | **Required when `Pull="PullMode.Groups"`.** Specifies the groups into which items from this list can be dragged |
 | `CloneFactory` | `Func<TItem, TItem>` | `null` | **Required when `Pull="PullMode.Clone"`.** A factory method used to create a clone of the dragged item |
 | `OnCloneException` | `Action<Exception>` | `null` | Raised when an exception occurs during object cloning |
-| `Put` | `PutMode?` | `null` | Mode for adding items to the list |
+| `Put` | `PutMode` | `null` | Mode for adding items to the list |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
 | `Converters` | `Dictionary<string, Func<object, TItem>>` | `null` | Dictionary of converters: the key is the `Id` of another `SortableList`, and the value is a function that converts an item from that list to `TItem` |
 | `OnConvertException` | `Action<Exception>` | `null` | Raised when an exception occurs during item conversion |
@@ -152,18 +161,18 @@ Both synchronous and asynchronous handlers are supported. Asynchronous handlers 
 ### SortableDropZone
 
 | Parameter | Type | Default | Description |
-|----------|------|----------------------|-------------|
+|-----------|------|---------|-------------|
 | `Class` | `string` | `null` | CSS class for the container |
 | `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
-| `Put` | `PutMode?` | `null` | Mode for adding items to the zone |
+| `Put` | `PutMode` | `null` | Mode for adding items to the zone |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
 | `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the placeholder during drag |
-| `OnDrop` | `Action<(object item, string sourceId, bool isClone, int index)>` | `null` | Event when dropping an item in the zone |
+| `OnDrop` | `Action<(object item, string sourceId, bool isClone, int index)>` | `null` | Raised when an item is dropped in the zone |
 
 ### PullMode
 
 | Value | Description |
-|----------|-----------|
+|-------|-------------|
 | `True` | Allows pulling items from the list |
 | `False` | Prohibits pulling items from the list |
 | `Groups` | Allows pulling items only from specified groups (requires `PullGroups` parameter) |
@@ -172,7 +181,7 @@ Both synchronous and asynchronous handlers are supported. Asynchronous handlers 
 ### PutMode
 
 | Value | Description |
-|----------|-----------|
+|-------|-------------|
 | `True` | Allows adding items to the list |
 | `False` | Prohibits adding items to the list |
 | `Groups` | Allows adding items only from specified groups (requires `PutGroups` parameter) |

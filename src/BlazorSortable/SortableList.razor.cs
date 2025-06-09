@@ -196,7 +196,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
     private protected override Task OnAfterFirstRenderAsync()
     {
-        SortableService.RegisterSortableList(Id, this);
+        SortableService.RegisterSortableList(id, this);
 
         return Task.CompletedTask;
     }
@@ -381,7 +381,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
     private protected override ValueTask DisposeAsyncCore()
     {
-        SortableService.UnregisterSortableList(Id);
+        SortableService.UnregisterSortableList(id);
 
         return ValueTask.CompletedTask;
     }
