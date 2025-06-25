@@ -1,13 +1,22 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.ComponentModel;
 
 namespace BlazorSortable.Internal;
+
+// TODO: MultiDrag
 
 /// <summary>
 /// Base abstract class for Sortable components.
 /// </summary>
 public abstract class SortableBase : ComponentBase, IAsyncDisposable
 {
+    /// <summary>
+    /// Specifies additional custom attributes that will be rendered by the component.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? Attributes { get; set; }
+
     /// <summary>
     /// CSS class applied to the root container of the Sortable component.
     /// </summary>
@@ -43,6 +52,24 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
     public string[]? PutGroups { get; set; }
 
     /// <summary>
+    /// Custom function to determine whether an item can be added to this Sortable component.
+    /// </summary>
+    /// <remarks>
+    /// Used only when <see cref="Put"/> is set to <see cref="PutMode.Function"/>.
+    /// The function receives the item being dragged and the target list info as parameters.
+    /// Should return true if the item can be added, false otherwise.
+    /// </remarks>
+    [Parameter]
+    public Func<object, ISortableListInfo, bool>? PutFunction { get; set; }
+
+    /// <summary>
+    /// Disables the Sortable component when set to true.
+    /// When disabled, drag and drop operations are not allowed.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
     /// CSS class for the ghost element during dragging.
     /// </summary>
     [Parameter]
@@ -51,11 +78,11 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
     [Inject] private protected ISortableService SortableService { get; set; } = default!;
     [Inject] private protected IJSRuntime JS { get; set; } = default!;
 
-    private protected abstract string InitMethodName { get; }
-
-    private protected string id = Guid.NewGuid().ToString();
-    private protected DotNetObjectReference<SortableBase>? selfReference;
     private protected IJSObjectReference? jsModule;
+    private protected DotNetObjectReference<SortableBase>? selfReference;
+    private protected string id = Guid.NewGuid().ToString();
+
+    private protected abstract string InitMethodName { get; }
 
     /// <summary>
     /// Initializes the Sortable component after the first render.
@@ -63,18 +90,15 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
     /// <param name="firstRender">Flag indicating whether this is the first render of the component.</param>
     protected sealed override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        if (firstRender)
+        {
+            jsModule = await JS.InvokeAsync<IJSObjectReference>("import",
+                "./_content/BlazorSortable/js/blazor-sortable.js");
+            selfReference = DotNetObjectReference.Create(this);
+            await jsModule.InvokeVoidAsync(InitMethodName, id, BuildOptions(), selfReference);
 
-        selfReference = DotNetObjectReference.Create(this);
-
-        jsModule = await JS.InvokeAsync<IJSObjectReference>("import",
-            "./_content/BlazorSortable/js/blazor-sortable.js");
-
-        var options = BuildOptions();
-
-        await jsModule.InvokeVoidAsync(InitMethodName, id, options, selfReference);
-
-        await OnAfterFirstRenderAsync();
+            await OnAfterFirstRenderAsync();
+        }
     }
 
     private protected virtual Task OnAfterFirstRenderAsync() => Task.CompletedTask;
@@ -88,8 +112,27 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
             PutMode.True => true,
             PutMode.False => false,
             PutMode.Groups => PutGroups?.Length > 0 ? PutGroups : null,
+            PutMode.Function => "function",
             _ => null
         };
+    }
+
+    /// <summary>
+    /// Called from JavaScript to determine if an item can be put into this list from the source list.
+    /// </summary>
+    /// <param name="sourceSortableId">The ID of the source sortable list.</param>
+    /// <returns>True if the item can be put; otherwise, false.</returns>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public bool OnPutJs(string sourceSortableId)
+    {
+        var sourceSortable = SortableService.GetSortableList(sourceSortableId)!;
+        var item = sourceSortable.GetItem(sourceSortable.DraggedItemIndex);
+
+        // Skip processing if item is null (can happen in clone mode when cloning fails)
+        if (item is null) return false;
+
+        return PutFunction?.Invoke(item, sourceSortable) ?? false;
     }
 
     /// <summary>
@@ -97,13 +140,15 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable
     /// </summary>
     public async ValueTask DisposeAsync()
     {
-        selfReference?.Dispose();
-
         if (jsModule is not null)
         {
-            await jsModule.InvokeVoidAsync("destroy", id);
+            await jsModule.InvokeVoidAsync("destroySortable", id);
             await jsModule.DisposeAsync();
         }
+
+        // Dispose selfReference after JavaScript module to prevent ObjectDisposedException
+        // when JS tries to serialize already disposed DotNetObjectReference
+        selfReference?.Dispose();
 
         await DisposeAsyncCore();
     }

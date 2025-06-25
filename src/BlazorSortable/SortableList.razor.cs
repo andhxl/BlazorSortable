@@ -5,6 +5,8 @@ using System.ComponentModel;
 
 namespace BlazorSortable;
 
+// TODO: MultiDrag
+
 /// <summary>
 /// Component for creating sortable lists with drag and drop functionality.
 /// </summary>
@@ -70,7 +72,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// If not provided in clone mode, item cloning will be skipped and null will be added instead.
     /// </remarks>
     [Parameter]
-    public Func<TItem, TItem>? CloneFactory { get; set; }
+    public Func<TItem, TItem>? CloneFunction { get; set; }
 
     /// <summary>
     /// Called when an unhandled exception occurs during object cloning.
@@ -83,6 +85,17 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public Action<Exception>? OnCloneException { get; set; }
 
     /// <summary>
+    /// Function used to determine if an item can be pulled from this list to another list.
+    /// </summary>
+    /// <remarks>
+    /// Used only when <see cref="Pull"/> is set to <see cref="PullMode.Function"/>.
+    /// The function receives the item being dragged and the target list info.
+    /// Return true to allow pulling, false to deny.
+    /// </remarks>
+    [Parameter]
+    public Func<TItem, ISortableListInfo, bool>? PullFunction { get; set; }
+
+    /// <summary>
     /// Dictionary of converters for transforming items from other SortableLists.
     /// </summary>
     /// <remarks>
@@ -91,7 +104,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// This is used when items are dragged between lists with different data types.
     /// </remarks>
     [Parameter]
-    public Dictionary<string, Func<object, TItem>>? Converters { get; set; }
+    public Func<object, ISortableListInfo, TItem?>? ConvertFunction { get; set; }
 
     /// <summary>
     /// Called when an unhandled exception occurs during converter execution.
@@ -130,6 +143,25 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public string? Filter { get; set; }
 
     /// <summary>
+    /// Function used to determine if an item can be dragged.
+    /// </summary>
+    /// <remarks>
+    /// If provided, only items that return true from this function will be draggable.
+    /// The draggable class will be applied to items that return true.
+    /// </remarks>
+    [Parameter]
+    public Func<TItem, bool>? DraggableSelector { get; set; }
+
+    /// <summary>
+    /// CSS class applied to items that can be dragged.
+    /// </summary>
+    /// <remarks>
+    /// Used in conjunction with <see cref="DraggableSelector"/> to style draggable items.
+    /// </remarks>
+    [Parameter]
+    public string DraggableClass { get; set; } = "sortable-draggable";
+
+    /// <summary>
     /// CSS class for the chosen element.
     /// </summary>
     [Parameter]
@@ -140,6 +172,16 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </summary>
     [Parameter]
     public string DragClass { get; set; } = "sortable-drag";
+
+    /// <summary>
+    /// Threshold for swap detection during dragging.
+    /// </summary>
+    /// <remarks>
+    /// Determines how much overlap is required before items are swapped.
+    /// Value between 0 and 1, where 1 means 100% overlap is required.
+    /// </remarks>
+    [Parameter]
+    public double SwapThreshold { get; set; } = 1;
 
     /// <summary>
     /// Forces the use of fallback mode for dragging.
@@ -153,6 +195,65 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [Parameter]
     public string FallbackClass { get; set; } = "sortable-fallback";
 
+    ///// <summary>
+    ///// Enables multi-drag functionality.
+    ///// </summary>
+    //[Parameter]
+    //public bool MultiDrag { get; set; }
+
+    ///// <summary>
+    ///// CSS class for selected items in multi-drag mode.
+    ///// </summary>
+    //[Parameter]
+    //public string SelectedClass { get; set; } = "sortable-selected";
+
+    ///// <summary>
+    ///// Key used to enable multi-drag selection.
+    ///// </summary>
+    ///// <remarks>
+    ///// Default is "Control" key. Users must hold this key while clicking to select multiple items.
+    ///// </remarks>
+    //[Parameter]
+    //public string? MultiDragKey { get; set; } = "Control";
+
+    ///// <summary>
+    ///// Prevents automatic deselection when clicking on selected items.
+    ///// </summary>
+    ///// <remarks>
+    ///// When true, clicking on a selected item will not deselect it.
+    ///// Useful for maintaining selection state during complex interactions.
+    ///// </remarks>
+    //[Parameter]
+    //public bool AvoidImplicitDeselect { get; set; }
+
+    /// <summary>
+    /// Enables swap mode for dragging.
+    /// </summary>
+    /// <remarks>
+    /// When enabled, dragging an item over another item will swap their positions
+    /// instead of inserting the dragged item at the new position.
+    /// </remarks>
+    [Parameter]
+    public bool Swap { get; set; }
+
+    /// <summary>
+    /// CSS class applied to items during swap highlighting.
+    /// </summary>
+    /// <remarks>
+    /// Applied to items that would be swapped when <see cref="Swap"/> is enabled.
+    /// </remarks>
+    [Parameter]
+    public string SwapClass { get; set; } = "sortable-swap-highlight";
+
+    /// <summary>
+    /// Enables scrolling of the container during dragging.
+    /// </summary>
+    /// <remarks>
+    /// When enabled, the container will scroll when dragging items near its edges.
+    /// </remarks>
+    [Parameter]
+    public bool Scroll { get; set; } = true;
+
     /// <summary>
     /// Event that occurs when an item is added to the list.
     /// </summary>
@@ -161,7 +262,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// in the parent component, which can cause conflicts with dynamic collections.
     /// </remarks>
     [Parameter]
-    public Action<(TItem item, string sourceId, bool isClone, int oldIndex, int newIndex)>? OnAdd { get; set; }
+    public Action<SortableEventArgs<TItem>>? OnAdd { get; set; }
 
     /// <summary>
     /// Event that occurs when the order of items in the list is updated.
@@ -171,7 +272,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// in the parent component, which can cause conflicts with dynamic collections.
     /// </remarks>
     [Parameter]
-    public Action<(TItem item, int oldIndex, int newIndex)>? OnUpdate { get; set; }
+    public Action<SortableEventArgs<TItem>>? OnUpdate { get; set; }
 
     /// <summary>
     /// Event that occurs when an item is removed from the list.
@@ -181,7 +282,30 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// in the parent component, which can cause conflicts with dynamic collections.
     /// </remarks>
     [Parameter]
-    public Action<(TItem item, int index)>? OnRemove { get; set; }
+    public Action<SortableEventArgs<TItem>>? OnRemove { get; set; }
+
+    ///// <summary>
+    ///// Event that occurs when an item is selected in multi-drag mode.
+    ///// </summary>
+    ///// <remarks>
+    ///// Uses Action instead of EventCallback to prevent automatic StateHasChanged
+    ///// in the parent component, which can cause conflicts with dynamic collections.
+    ///// </remarks>
+    //[Parameter]
+    //public Action<SortableEventArgs<TItem>>? OnSelect { get; set; }
+
+    ///// <summary>
+    ///// Event that occurs when an item is deselected in multi-drag mode.
+    ///// </summary>
+    ///// <remarks>
+    ///// Uses Action instead of EventCallback to prevent automatic StateHasChanged
+    ///// in the parent component, which can cause conflicts with dynamic collections.
+    ///// </remarks>
+    //[Parameter]
+    //public Action<SortableEventArgs<TItem>>? OnDeselect { get; set; }
+
+    private int _draggedItemIndex = -1;
+    private bool _suppressNextRemove;
 
     /// <summary>
     /// Validates required parameters during component initialization.
@@ -192,13 +316,18 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         ArgumentNullException.ThrowIfNull(Items);
     }
 
-    private protected override string InitMethodName => "init";
+    private protected override string InitMethodName => "initSortableList";
 
-    private protected override Task OnAfterFirstRenderAsync()
+    /// <summary>
+    /// Called by the Blazor framework after the component has rendered.
+    /// </summary>
+    /// <param name="firstRender">True if this is the first time the component is rendered.</param>
+    protected override void OnAfterRender(bool firstRender)
     {
-        SortableService.RegisterSortableList(id, this);
-
-        return Task.CompletedTask;
+        if (firstRender)
+        {
+            SortableService.RegisterSortableList(id, this);
+        }
     }
 
     private protected override Dictionary<string, object> BuildOptions()
@@ -220,12 +349,14 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         {
             ["group"] = group,
             ["sort"] = Sort,
+            ["disabled"] = Disabled,
             ["animation"] = Animation,
             ["ghostClass"] = GhostClass,
             ["chosenClass"] = ChosenClass,
             ["dragClass"] = DragClass,
+            ["swapThreshold"] = SwapThreshold,
             ["forceFallback"] = ForceFallback,
-            ["fallbackClass"] = FallbackClass
+            ["fallbackClass"] = FallbackClass,
         };
 
         if (!string.IsNullOrWhiteSpace(Handle))
@@ -233,6 +364,29 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         if (!string.IsNullOrWhiteSpace(Filter))
             options["filter"] = Filter;
+
+        if (DraggableSelector is not null)
+            options["draggable"] = "." + DraggableClass;
+
+        //if (MultiDrag)
+        //{
+        //    options["multiDrag"] = true;
+        //    options["selectedClass"] = SelectedClass;
+        //    options["avoidImplicitDeselect"] = AvoidImplicitDeselect;
+
+        //    if (!string.IsNullOrWhiteSpace(MultiDragKey))
+        //        options["multiDragKey"] = MultiDragKey;
+        //}
+
+        if (Swap)
+        {
+            options["swap"] = true;
+            options["swapClass"] = SwapClass;
+        }
+
+        options["scroll"] = Scroll;
+
+        // Possible bug in OnSpill: item might be removed from the list even if removeOnSpill is false and revertOnSpill is true
 
         return options;
     }
@@ -245,11 +399,46 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
             PullMode.False => false,
             PullMode.Groups => PullGroups?.Length > 0 ? PullGroups : null,
             PullMode.Clone => "clone",
+            PullMode.Function => "function",
             _ => null
         };
     }
 
-    private object GetKey(TItem item) => KeySelector?.Invoke(item) ?? item!;
+    /// <summary>
+    /// Called from JavaScript when the drag operation starts.
+    /// </summary>
+    /// <param name="oldIndex">The index of the item being dragged.</param>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public void OnStartJs(int oldIndex)
+    {
+        _draggedItemIndex = oldIndex;
+    }
+
+    /// <summary>
+    /// Called from JavaScript when the drag operation ends.
+    /// </summary>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public void OnEndJs()
+    {
+        _draggedItemIndex = -1;
+    }
+
+    /// <summary>
+    /// Called from JavaScript to determine if an item can be pulled to the target list.
+    /// </summary>
+    /// <param name="targetSortableId">The ID of the target sortable list.</param>
+    /// <returns>True if the item can be pulled; otherwise, false.</returns>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public bool OnPullJs(string targetSortableId)
+    {
+        var item = Items[_draggedItemIndex];
+        var targetSortable = SortableService.GetSortableList(targetSortableId)!;
+
+        return PullFunction?.Invoke(item, targetSortable) ?? false;
+    }
 
     /// <summary>
     /// Event handler for adding an item, called from JavaScript.
@@ -270,9 +459,9 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         TItem? itemToAdd = default;
 
-        if (Converters is not null && Converters.ContainsKey(sourceId))
+        if (ConvertFunction is not null)
         {
-            itemToAdd = TryConvertItem(sourceId, sourceObject);
+            itemToAdd = TryConvertItem(sourceObject, sourceSortable);
         }
         else if (sourceObject is TItem sourceItem)
         {
@@ -281,12 +470,12 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         if (itemToAdd is null) return;
 
-        InsertItem(newIndex, itemToAdd);
+        Items.Insert(newIndex, itemToAdd);
         sourceSortable.SuppressNextRemove = false;
-
         StateHasChanged();
 
-        OnAdd?.Invoke((itemToAdd, sourceId, isClone, oldIndex, newIndex));
+        var args = new SortableEventArgs<TItem>(itemToAdd, sourceSortable, oldIndex, newIndex) { IsClone = isClone };
+        OnAdd?.Invoke(args);
     }
 
     /// <summary>
@@ -300,11 +489,12 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     {
         var itemToMove = Items[oldIndex];
         Items.RemoveAt(oldIndex);
-        InsertItem(newIndex, itemToMove);
+        Items.Insert(newIndex, itemToMove);
 
         StateHasChanged();
 
-        OnUpdate?.Invoke((itemToMove, oldIndex, newIndex));
+        var args = new SortableEventArgs<TItem>(itemToMove, this, oldIndex, newIndex);
+        OnUpdate?.Invoke(args);
     }
 
     /// <summary>
@@ -315,10 +505,9 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void OnRemoveJs(int index)
     {
-        var sortable = (ISortableList)this;
-        if (sortable.SuppressNextRemove)
+        if (_suppressNextRemove)
         {
-            sortable.SuppressNextRemove = false;
+            _suppressNextRemove = false;
             return;
         }
 
@@ -327,8 +516,35 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         StateHasChanged();
 
-        OnRemove?.Invoke((itemToRemove, index));
+        var args = new SortableEventArgs<TItem>(itemToRemove, this, index);
+        OnRemove?.Invoke(args);
     }
+
+    ///// <summary>
+    ///// Event handler for selecting an item, called from JavaScript.
+    ///// </summary>
+    ///// <param name="index">Index of the selected item.</param>
+    //[JSInvokable]
+    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //public void OnSelectJs(int index)
+    //{
+    //    var args = new SortableEventArgs<TItem>(Items[index], this, index);
+    //    OnSelect?.Invoke(args);
+    //}
+
+    ///// <summary>
+    ///// Event handler for deselecting an item, called from JavaScript.
+    ///// </summary>
+    ///// <param name="index">Index of the deselected item.</param>
+    //[JSInvokable]
+    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //public void OnDeselectJs(int index)
+    //{
+    //    var args = new SortableEventArgs<TItem>(Items[index], this, index);
+    //    OnDeselect?.Invoke(args);
+    //}
+
+    int ISortableList.DraggedItemIndex => _draggedItemIndex;
 
     object? ISortableList.GetItem(int index)
     {
@@ -337,15 +553,19 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         return Pull == PullMode.Clone ? TryCloneItem(item) : item;
     }
 
-    bool ISortableList.SuppressNextRemove { get; set; }
+    bool ISortableList.SuppressNextRemove
+    {
+        get => _suppressNextRemove;
+        set => _suppressNextRemove = value;
+    }
 
     private TItem? TryCloneItem(TItem item)
     {
-        if (CloneFactory is null) return default;
+        if (CloneFunction is null) return default;
 
         try
         {
-            return CloneFactory(item);
+            return CloneFunction(item);
         }
         catch (Exception ex)
         {
@@ -354,28 +574,16 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         }
     }
 
-    private TItem? TryConvertItem(string sortableId, object item)
+    private TItem? TryConvertItem(object item, ISortableListInfo sourceSortable)
     {
         try
         {
-            return Converters![sortableId](item);
+            return ConvertFunction!(item, sourceSortable);
         }
         catch (Exception ex)
         {
             OnConvertException?.Invoke(ex);
             return default;
-        }
-    }
-
-    private void InsertItem(int index, TItem item)
-    {
-        if (index < Items.Count)
-        {
-            Items.Insert(index, item);
-        }
-        else
-        {
-            Items.Add(item);
         }
     }
 

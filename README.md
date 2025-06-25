@@ -18,16 +18,16 @@ dotnet add package BlazorSortable
 Add to your .csproj file:
 ```xml
 <ItemGroup>
-  <PackageReference Include="BlazorSortable" Version="2.*" />
+  <PackageReference Include="BlazorSortable" Version="3.*" />
 </ItemGroup>
 ```
 
 ## Setup
 
 1. Add the SortableJS library to:
+    - `wwwroot/index.html` (for Blazor WebAssembly)
     - `Components/App.razor` (for Blazor Web App)
     - `Pages/_Host.cshtml` (for Blazor Server)
-    - `wwwroot/index.html` (for Blazor WebAssembly)
 
     Using one of the following methods:
 
@@ -74,16 +74,14 @@ builder.Services.AddSortableServices();
 ```razor
 <SortableList Items="Persons"
               Class="my-sortable-list"
-              Group="group1">
+              Group="Group1">
     <PersonComponent Person="context" />
 </SortableList>
-```
 
-#### With inline HTML content
-```razor
-<SortableList Items="Persons"
+<SortableList TItem="Person"
+              Items="Persons"
               Class="my-sortable-list"
-              Group="group1"
+              Group="Group1"
               Context="person">
     <div class="person-card">
         <h4>@person.Name</h4>
@@ -97,32 +95,44 @@ builder.Services.AddSortableServices();
 
 ```razor
 <SortableDropZone Class="my-sortable-drop-zone"
-                  Group="group1"
-                  OnDrop="HandleDrop" />
-```
-
-### ConvertersBuilder
-
-For convenient creation of converters dictionary, the `ConvertersBuilder` class is used. It allows defining transformations for different element types in a method chain:
-
-```csharp
-// Creating a converters dictionary
-var converters = new ConvertersBuilder<Employee>()
-    .Add<Person>("personList", p => new Employee { Name = p.FullName })
-    .Add<Student>("studentList", s => new Employee { Name = s.Name });
-
-// Using in component
-<SortableList Items="Employees"
-              Converters="converters"
-              Group="group1">
-    <ItemComponent Item="context" />
-</SortableList>
+                  Group="Group1"
+                  OnDrop="OnDrop" />
 ```
 
 ## Events
 
 Events use `Action<T>` instead of `EventCallback<T>`.
 **Reason:** `EventCallback.InvokeAsync` automatically triggers `StateHasChanged()` in the parent component. For this component, this causes conflicts between DOM and data model.
+
+All events receive a `SortableEventArgs<TItem>` parameter containing information about the operation.
+
+### SortableEventArgs
+
+The `SortableEventArgs<TItem>` class provides information about sorting operations:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Item` | `TItem` | The item participating in the sorting operation |
+| `SourceSortable` | `ISortableListInfo` | Information about the source sortable list |
+| `IsClone` | `bool` | Indicates whether the item is a clone (created when dragging between lists) |
+| `OldIndex` | `int` | The previous index of the item in the list (-1 if no previous index) |
+| `NewIndex` | `int` | The new index of the item in the list (-1 if no new index) |
+
+### ISortableListInfo
+
+The `ISortableListInfo` interface provides information about a sortable list component:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Id` | `string` | Unique identifier of the component |
+| `Group` | `string` | Group name for interaction with other Sortable components |
+
+### Order & Notes
+
+- **Order of events** when dragging between lists:
+  1. `OnAdd` is triggered **first**.
+  2. `OnRemove` is triggered **after**.
+- During `OnAdd`, the item is **still present in the source list**.
 
 ## Component Parameters
 
@@ -132,6 +142,7 @@ Events use `Action<T>` instead of `EventCallback<T>`.
 |-----------|------|---------|-------------|
 | `TItem` | — | — | The type of items in the sortable list |
 | `Items` | `IList<TItem>` | **Required** | List of items to display and sort |
+| `Attributes` | `IReadOnlyDictionary<string, object>` | `null` | Additional custom attributes that will be rendered by the component |
 | `Class` | `string` | `null` | CSS class for the container |
 | `Style` | `string` | `null` | Inline CSS styles for the container |
 | `ChildContent` | `RenderFragment<TItem>` | `null` | Template for displaying each list item. Can be a component, HTML elements, or any Razor markup |
@@ -140,36 +151,48 @@ Events use `Action<T>` instead of `EventCallback<T>`.
 | `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
 | `Pull` | `PullMode` | `null` | Mode for pulling items from the list |
 | `PullGroups` | `string[]` | `null` | **Required when `Pull="PullMode.Groups"`.** Specifies the groups into which items from this list can be dragged |
-| `CloneFactory` | `Func<TItem, TItem>` | `null` | **Required when `Pull="PullMode.Clone"`.** A factory method used to create a clone of the dragged item |
+| `CloneFunction` | `Func<TItem, TItem>` | `null` | **Required when `Pull="PullMode.Clone"`.** A factory method used to create a clone of the dragged item |
 | `OnCloneException` | `Action<Exception>` | `null` | Raised when an exception occurs during object cloning |
+| `PullFunction` | `Func<TItem, ISortableListInfo, bool>` | `null` | **Required when `Pull="PullMode.Function"`.** Function to determine if an item can be pulled to the target list |
 | `Put` | `PutMode` | `null` | Mode for adding items to the list |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
-| `Converters` | `Dictionary<string, Func<object, TItem>>` | `null` | Dictionary of converters: the key is the `Id` of another `SortableList`, and the value is a function that converts an item from that list to `TItem` |
+| `PutFunction` | `Func<object, ISortableListInfo, bool>` | `null` | **Required when `Put="PutMode.Function"`.** Function to determine if an item can be put into this list. This function is invoked synchronously from JavaScript using `invokeMethod` |
+| `ConvertFunction` | `Func<object, ISortableListInfo, TItem?>` | `null` | Function to convert items from other SortableLists to the target type |
 | `OnConvertException` | `Action<Exception>` | `null` | Raised when an exception occurs during item conversion |
 | `Sort` | `bool` | `true` | Enables or disables sorting of items within the list |
+| `Disabled` | `bool` | `false` | Disables the Sortable component when set to true |
 | `Animation` | `int` | `150` | Animation duration in milliseconds |
 | `Handle` | `string` | `null` | CSS selector for elements that can be dragged (e.g. ".my-handle") |
 | `Filter` | `string` | `null` | CSS selector for elements that cannot be dragged (e.g. ".ignore-elements") |
+| `DraggableSelector` | `Func<TItem, bool>` | `null` | Function to determine if an item can be dragged |
+| `DraggableClass` | `string` | `"sortable-draggable"` | CSS class applied to items that can be dragged |
 | `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the placeholder during drag |
 | `ChosenClass` | `string` | `"sortable-chosen"` | CSS class for the chosen element |
 | `DragClass` | `string` | `"sortable-drag"` | CSS class for the dragged element |
+| `SwapThreshold` | `double` | `1` | Threshold for swap detection during dragging (0-1) |
 | `ForceFallback` | `bool` | `true` | Forces fallback mode for dragging |
 | `FallbackClass` | `string` | `"sortable-fallback"` | CSS class for the element in fallback mode |
-| `OnAdd` | `Action<(TItem item, string sourceId, bool isClone, int oldIndex, int newIndex)>` | `null` | Raised when an item is added to the list |
-| `OnUpdate` | `Action<(TItem item, int oldIndex, int newIndex)>` | `null` | Raised when the order of items is changed |
-| `OnRemove` | `Action<(TItem item, int index)>` | `null` | Raised when an item is removed from the list |
+| `Swap` | `bool` | `false` | Enables swap mode for dragging |
+| `SwapClass` | `string` | `"sortable-swap-highlight"` | CSS class applied to items during swap highlighting |
+| `Scroll` | `bool` | `true` | Enables scrolling of the container during dragging |
+| `OnAdd` | `Action<SortableEventArgs<TItem>>` | `null` | Raised when an item is added to the list |
+| `OnUpdate` | `Action<SortableEventArgs<TItem>>` | `null` | Raised when the order of items is changed |
+| `OnRemove` | `Action<SortableEventArgs<TItem>>` | `null` | Raised when an item is removed from the list |
 
 ### SortableDropZone
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
+| `Attributes` | `IReadOnlyDictionary<string, object>` | `null` | Additional custom attributes that will be rendered by the component |
 | `Class` | `string` | `null` | CSS class for the container |
 | `Style` | `string` | `null` | Inline CSS styles for the container |
 | `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
 | `Put` | `PutMode` | `null` | Mode for adding items to the zone |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
+| `PutFunction` | `Func<object, ISortableListInfo, bool>` | `null` | **Required when `Put="PutMode.Function"`.** Function to determine if an item can be put into this zone. This function is invoked synchronously from JavaScript using `invokeMethod` |
+| `Disabled` | `bool` | `false` | Disables the Sortable component when set to true |
 | `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the placeholder during drag |
-| `OnDrop` | `Action<(object item, string sourceId, bool isClone, int index)>` | `null` | Raised when an item is dropped in the zone |
+| `OnDrop` | `Action<SortableEventArgs<object>>` | `null` | Raised when an item is dropped in the zone |
 
 ### PullMode
 
@@ -178,7 +201,8 @@ Events use `Action<T>` instead of `EventCallback<T>`.
 | `True` | Allows pulling items from the list |
 | `False` | Prohibits pulling items from the list |
 | `Groups` | Allows pulling items only from specified groups (requires `PullGroups` parameter) |
-| `Clone` | Creates a clone of the item when dragging (requires `CloneFactory` parameter) |
+| `Clone` | Creates a clone of the item when dragging (requires `CloneFunction` parameter) |
+| `Function` | Uses a custom function to determine if items can be pulled (requires `PullFunction` parameter) |
 
 ### PutMode
 
@@ -187,3 +211,4 @@ Events use `Action<T>` instead of `EventCallback<T>`.
 | `True` | Allows adding items to the list |
 | `False` | Prohibits adding items to the list |
 | `Groups` | Allows adding items only from specified groups (requires `PutGroups` parameter) |
+| `Function` | Uses a custom function to determine if items can be added (requires `PutFunction` parameter) |

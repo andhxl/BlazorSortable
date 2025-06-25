@@ -1,4 +1,4 @@
-﻿<div class="@Class">
+<div class="@Class">
     <div class="my-handle">⋮⋮</div>
     <div class="item-content">
         <div class="item-name">@($"{Item.Name} ({Item.Id})")</div>
@@ -7,7 +7,7 @@
 </div>
 
 <style>
-    .item {
+    .item_ {
         border: 1px solid #ddd;
         border-radius: 4px;
         padding: 8px;
@@ -52,5 +52,5 @@
     public Item1 Item { get; set; } = default!;
 
     [Parameter]
-    public string Class { get; set; } = "item";
+    public string Class { get; set; } = "item_";
 }

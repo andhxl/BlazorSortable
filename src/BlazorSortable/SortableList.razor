@@ -1,13 +1,17 @@
-﻿@inherits SortableBase
+@inherits SortableBase
 
 @typeparam TItem
 
-<div id="@id" class="@Class" style="@Style">
+<div @attributes="@Attributes"
+     id="@id"
+     class="@Class"
+     style="@Style">
     @if (ChildContent is not null)
     {
         @foreach (var item in Items)
         {
-            <div @key="GetKey(item)">
+            <div @key="@(KeySelector?.Invoke(item) ?? item)"
+                 class="@(DraggableSelector?.Invoke(item) == true ? DraggableClass : "")">
                 @ChildContent(item)
             </div>
         }

@@ -1,4 +1,4 @@
-﻿namespace BlazorSortable;
+namespace BlazorSortable;
 
 /// <summary>
 /// Defines the mode for pulling items from the list during drag and drop operations.
@@ -23,7 +23,13 @@ public enum PullMode
 
     /// <summary>
     /// Creates a clone of the item when dragging.
-    /// Requires setting the <see cref="SortableList{TItem}.CloneFactory"/> parameter.
+    /// Requires setting the <see cref="SortableList{TItem}.CloneFunction"/> parameter.
     /// </summary>
-    Clone
+    Clone,
+
+    /// <summary>
+    /// Uses a custom function to determine if an item can be pulled from the list.
+    /// Requires setting the <see cref="SortableList{TItem}.PullFunction"/> parameter.
+    /// </summary>
+    Function
 }

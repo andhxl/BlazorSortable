@@ -49,10 +49,10 @@
     display: block;
 }
 
-::deep .ghostt {
+::deep .ghost-red {
     background-color: red;
 }
 
-::deep .dragt {
+::deep .drag {
     background-color: yellow;
 }

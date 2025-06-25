@@ -1,6 +1,8 @@
-﻿@page "/"
+@page "/"
 
 <h1>BlazorSortable Demo</h1>
+
+<a href="/page1">Go to Page1</a>
 
 <div class="lists-group">
     <h2>Sort</h2>
@@ -38,8 +40,9 @@
             <h3>List 1</h3>
             <SortableList Items="GenerateItem1List(3)"
                           Group="group2"
+                          Swap="true"
                           Pull="PullMode.Clone"
-                          CloneFactory="@(i => new Item1 { Name = i.Name + "_clone" })"
+                          CloneFunction="@(i => new Item1 { Name = i.Name + "_clone" })"
                           OnCloneException="OnCloneException"
                           Put="PutMode.False"
                           Class="sortable-list">
@@ -51,7 +54,6 @@
         <div class="list-column">
             <h3>List 2</h3>
             <SortableList Items="GenerateItem1List(3, 4)"
-                          Group="group2"
                           Class="sortable-list">
                 <Item1Component Item="@context" />
             </SortableList>
@@ -84,10 +86,11 @@
         </div>
         <div class="list-column">
             <h3>List 3</h3>
-            <SortableList Items="GenerateItem2List(2)"
+            <SortableList TItem="Item2"
+                          Items="GenerateItem2List(2)"
                           Put="PutMode.Groups"
                           PutGroups="@(["group3"])"
-                          Converters="@list7Converters"
+                          ConvertFunction="@ItemConverter1"
                           OnConvertException="OnConvertException"
                           Pull="PullMode.False"
                           Class="sortable-list"
@@ -103,20 +106,28 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List</h3>
-            <SortableList Items="GenerateItem1List(4)"
-                          Group="drop"
+            @* <SortableList Items="GenerateItem1List(4)" *@
+            @*               Group="Drop" *@
+            @*               Pull="PullMode.True" *@
+            @*               DragClass="dragt" *@
+            @*               Class="sortable-list"> *@
+            @*     <Item1Component Item="context" /> *@
+            @* </SortableList> *@
+            <SortableList Items="@([1, 2, 3])"
+                          Group="Drop"
                           Pull="PullMode.True"
-                          DragClass="dragt"
+                          DragClass="drag"
                           Class="sortable-list">
-                <Item1Component Item="context" />
+                @context
             </SortableList>
         </div>
         <div class="list-column">
             <h3>Drop zone</h3>
             <SortableDropZone Class="drop-zone"
-                              GhostClass="ghostt"
-                              Put="PutMode.Groups"
-                              PutGroups="@(["drop", "group3"])" />
+                              GhostClass="ghost-red"
+                              Put="PutMode.Function"
+                              PutFunction="@OnPut"
+                              OnDrop="@OnDrop" />
         </div>
     </div>
 </div>
@@ -138,34 +149,50 @@
         return list;
     }
 
-    private Dictionary<string, Func<object, Item2>> list7Converters = new ConvertersBuilder<Item2>()
-        .Add<Item1>("list1", i1 => new Item2
+    private Item2? ItemConverter1(object item, ISortableListInfo info)
+    {
+        switch (item)
         {
-            Name = i1.Name + " from list1",
-            Value = 100
-        })
-        .Add<Item1>("list2_", i1 => new Item2
-        {
-            Name = i1.Name + " from list2",
-            Value = 50
-        });
+            case Item1 item1:
+                switch (info.Id)
+                {
+                    case "list1":
+                        return new Item2
+                        {
+                            Name = item1.Name + " from list1",
+                            Value = 100
+                        };
+                    case "list2_":
+                        return new Item2
+                        {
+                            Name = item1.Name + " from list2",
+                            Value = 50
+                        };
+                }
+                break;
 
-    private void OnAddItem1((Item1 item, string sourceId, bool isClone, int oldIndex, int newIndex) args)
+            case Item2 item2:
+                return item2;
+        }
+        return null;
+    }
+
+    private void OnAddItem1(SortableEventArgs<Item1> args)
     {
 
     }
 
-    private void OnUpdateItem1((Item1 item, int oldIndex, int newIndex) args)
+    private void OnUpdateItem1(SortableEventArgs<Item1> args)
     {
 
     }
 
-    private void OnRemoveItem1((Item1 item, int index) args)
+    private void OnRemoveItem1(SortableEventArgs<Item1> args)
     {
 
     }
 
-    private void OnDrop((object item, string sourceId, bool isClone, int index) args)
+    private void OnDrop(SortableEventArgs<object> args)
     {
 
     }
@@ -178,5 +205,10 @@
     private void OnConvertException(Exception ex)
     {
 
+    }
+
+    private bool OnPut(object item, ISortableListInfo sourceSortable)
+    {
+        return sourceSortable.Group == "Drop";
     }
 }

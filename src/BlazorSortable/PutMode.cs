@@ -1,4 +1,4 @@
-﻿namespace BlazorSortable;
+namespace BlazorSortable;
 
 /// <summary>
 /// Defines the mode for adding items to the list during drag and drop operations.
@@ -19,5 +19,11 @@ public enum PutMode
     /// Allows adding items only from specified groups.
     /// Requires setting the <see cref="Internal.SortableBase.PutGroups"/> parameter.
     /// </summary>
-    Groups
+    Groups,
+
+    /// <summary>
+    /// Uses a custom function to determine whether items can be added to the list.
+    /// Requires setting the <see cref="Internal.SortableBase.PutFunction"/> parameter.
+    /// </summary>
+    Function
 }

@@ -1,47 +1,99 @@
-﻿export function init(id, options, component) {
+export function initSortableList(id, options, component) {
     const el = document.getElementById(id);
+    if (!el) return;
 
+    if (options.group.pull === "function") {
+        options.group.pull = function (to, from, dragEl, evt) {
+            return component.invokeMethod('OnPullJs', to.el.id);
+        };
+    }
+    if (options.group.put === "function") {
+        options.group.put = function (to, from, dragEl, evt) {
+            return component.invokeMethod('OnPutJs', from.el.id);
+        };
+    }
+
+    // TODO: MultiDrag
     el._sortable = new Sortable(el, {
         ...options,
-        onAdd: (event) => {
-            component.invokeMethodAsync('OnAddJs', event.from.id, event.pullMode === 'clone', event.oldIndex, event.newIndex);
+        onStart: (evt) => {
+            component.invokeMethodAsync('OnStartJs', evt.oldIndex);
         },
-        onUpdate: (event) => {
+        onEnd: (evt) => {
+            component.invokeMethodAsync('OnEndJs');
+        },
+        onAdd: (evt) => {
+            //const oldIndexes = extractIndexes(evt.oldIndicies);
+            //const newIndexes = extractIndexes(evt.newIndicies);
+
+            component.invokeMethodAsync('OnAddJs', evt.from.id, evt.pullMode === 'clone', evt.oldIndex, evt.newIndex);
+        },
+        onUpdate: (evt) => {
+            //const oldIndexes = extractIndexes(evt.oldIndicies);
+            //const newIndexes = extractIndexes(evt.newIndicies);
+
             // Revert the DOM to match the .NET state
-            event.item.remove();
-            event.from.insertBefore(event.item, event.from.children[event.oldIndex]);
+            evt.item.remove();
+            evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
 
             // Notify .NET to update its model and re-render
-            component.invokeMethodAsync('OnUpdateJs', event.oldIndex, event.newIndex);
+            component.invokeMethodAsync('OnUpdateJs', evt.oldIndex, evt.newIndex);
         },
-        onRemove: (event) => {
-            event.item.remove();
-            event.from.insertBefore(event.item, event.from.children[event.oldIndex]);
+        onRemove: (evt) => {
+            //const oldIndexes = extractIndexes(evt.oldIndicies);
+            //const newIndexes = extractIndexes(evt.newIndicies);
 
-            if (event.pullMode === 'clone') {
-                event.clone.remove();
+            evt.item.remove();
+            evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+
+            if (evt.pullMode === 'clone') {
+                evt.clone?.remove(); // Handle MultiDrag null case
             }
             else {
-                component.invokeMethodAsync('OnRemoveJs', event.oldIndex);
+                component.invokeMethodAsync('OnRemoveJs', evt.oldIndex);
             }
-        }
+        },
+        //onSelect: (evt) => {
+        //    component.invokeMethodAsync('OnSelectJs', evt.oldIndex);
+        //},
+        //onDeselect: (evt) => {
+        //    component.invokeMethodAsync('OnDeselectJs', evt.oldIndex);
+        //}
     });
 }
 
-export function initDropZone(id, options, component) {
+export function initSortableDropZone(id, options, component) {
     const el = document.getElementById(id);
+    if (!el) return;
 
+    if (options.group.put === "function") {
+        options.group.put = function (to, from, dragEl, evt) {
+            return component.invokeMethod('OnPutJs', from.el.id);
+        };
+    }
+
+    // TODO: MultiDrag
     el._sortable = new Sortable(el, {
         ...options,
-        onAdd: (event) => {
-            component.invokeMethodAsync('OnAddJs', event.from.id, event.pullMode === 'clone', event.oldIndex);
+        onAdd: (evt) => {
+            //const oldIndexes = extractIndexes(evt.oldIndicies);
+            //const newIndexes = extractIndexes(evt.newIndicies);
+
+            component.invokeMethodAsync('OnAddJs', evt.from.id, evt.pullMode === 'clone', evt.oldIndex);
         }
     });
 }
 
-export function destroy(id) {
+export function destroySortable(id) {
     const el = document.getElementById(id);
+    if (!el) return;
 
-    el._sortable.destroy();
-    delete el._sortable;
+    if (el._sortable) {
+        el._sortable.destroy();
+        delete el._sortable;
+    }
 }
+
+//function extractIndexes(indicies) {
+//    return indicies.map(i => i.index);
+//}

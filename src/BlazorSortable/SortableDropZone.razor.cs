@@ -5,6 +5,8 @@ using System.ComponentModel;
 
 namespace BlazorSortable;
 
+// TODO: MultiDrag
+
 /// <summary>
 /// Component for creating a drop zone for elements.
 /// </summary>
@@ -18,9 +20,9 @@ public partial class SortableDropZone : SortableBase
     /// in the parent component, which can cause conflicts with dynamic collections.
     /// </remarks>
     [Parameter]
-    public Action<(object item, string sourceId, bool isClone, int index)>? OnDrop { get; set; }
+    public Action<SortableEventArgs<object>>? OnDrop { get; set; }
 
-    private protected override string InitMethodName => "initDropZone";
+    private protected override string InitMethodName => "initSortableDropZone";
 
     private protected override Dictionary<string, object> BuildOptions()
     {
@@ -35,6 +37,7 @@ public partial class SortableDropZone : SortableBase
 
         var options = new Dictionary<string, object>
         {
+            ["disabled"] = Disabled,
             ["group"] = group,
             ["ghostClass"] = GhostClass
         };
@@ -45,17 +48,20 @@ public partial class SortableDropZone : SortableBase
     /// <summary>
     /// Event handler for adding an item, called from JavaScript.
     /// </summary>
-    /// <param name="sourceId">Source SortableList identifier.</param>
+    /// <param name="sourceSortableId">Source SortableList identifier.</param>
     /// <param name="isClone">Flag indicating whether the item is a clone.</param>
     /// <param name="index">Item index in the source SortableList.</param>
     [JSInvokable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public void OnAddJs(string sourceId, bool isClone, int index)
+    public void OnAddJs(string sourceSortableId, bool isClone, int index)
     {
-        var sortable = SortableService.GetSortableList(sourceId)!;
-        var item = sortable.GetItem(index);
+        var sourceSortable = SortableService.GetSortableList(sourceSortableId)!;
+        var item = sourceSortable.GetItem(index);
+
+        // Skip processing if item is null (can happen in clone mode when cloning fails)
         if (item is null) return;
 
-        OnDrop?.Invoke((item, sourceId, isClone, index));
+        var args = new SortableEventArgs<object>(item, sourceSortable, index) { IsClone = isClone };
+        OnDrop?.Invoke(args);
     }
 }
