@@ -12,12 +12,6 @@ namespace BlazorSortable.Internal;
 public abstract class SortableBase : ComponentBase, IAsyncDisposable, ISortable
 {
     /// <summary>
-    /// Specifies additional custom attributes that will be rendered by the component.
-    /// </summary>
-    [Parameter(CaptureUnmatchedValues = true)]
-    public IReadOnlyDictionary<string, object>? Attributes { get; set; }
-
-    /// <summary>
     /// CSS class applied to the root container of the Sortable component.
     /// </summary>
     [Parameter]
@@ -28,6 +22,12 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable, ISortable
     /// </summary>
     [Parameter]
     public string? Style { get; set; }
+
+    /// <summary>
+    /// Specifies additional custom attributes that will be rendered by the component.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? Attributes { get; set; }
 
     /// <summary>
     /// Unique identifier of the component. Must be globally unique across all Sortable instances.

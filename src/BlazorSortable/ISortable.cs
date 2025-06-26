@@ -11,10 +11,10 @@ public interface ISortable
     /// <summary>
     /// Unique identifier of the component.
     /// </summary>
-    public string Id { get; }
+    string Id { get; }
 
     /// <summary>
     /// Group name for interaction with other Sortable components.
     /// </summary>
-    public string Group { get; }
+    string Group { get; }
 }

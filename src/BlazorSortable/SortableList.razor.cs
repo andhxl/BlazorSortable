@@ -167,7 +167,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </summary>
     /// <remarks>
     /// Determines how much overlap is required before items are swapped.
-    /// Value between 0 and 1, where 1 means 100% overlap is required.
+    /// Value between 0 and 1.
     /// </remarks>
     [Parameter]
     public double SwapThreshold { get; set; } = 1;
@@ -244,15 +244,6 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public bool Scroll { get; set; } = true;
 
     /// <summary>
-    /// Event that occurs when an item is added to the list.
-    /// </summary>
-    /// <remarks>
-    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged in the parent component.
-    /// </remarks>
-    [Parameter]
-    public Action<SortableEventArgs<TItem>>? OnAdd { get; set; }
-
-    /// <summary>
     /// Event that occurs when the order of items in the list is updated.
     /// </summary>
     /// <remarks>
@@ -260,6 +251,15 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </remarks>
     [Parameter]
     public Action<SortableEventArgs<TItem>>? OnUpdate { get; set; }
+
+    /// <summary>
+    /// Event that occurs when an item is added to the list.
+    /// </summary>
+    /// <remarks>
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged in the parent component.
+    /// </remarks>
+    [Parameter]
+    public Action<SortableEventArgs<TItem>>? OnAdd { get; set; }
 
     /// <summary>
     /// Event that occurs when an item is removed from the list.
@@ -288,8 +288,8 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     //[Parameter]
     //public Action<TItem>? OnDeselect { get; set; }
 
-    private int _draggedItemIndex = -1;
-    private bool _suppressNextRemove;
+    private int draggedItemIndex = -1;
+    private bool suppressNextRemove;
 
     /// <summary>
     /// Validates required parameters during component initialization.
@@ -396,7 +396,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void OnStartJs(int index)
     {
-        _draggedItemIndex = index;
+        draggedItemIndex = index;
     }
 
     /// <summary>
@@ -406,7 +406,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void OnEndJs()
     {
-        _draggedItemIndex = -1;
+        draggedItemIndex = -1;
     }
 
     /// <summary>
@@ -418,7 +418,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [EditorBrowsable(EditorBrowsableState.Never)]
     public bool OnPullJs(string toId)
     {
-        var item = Items[_draggedItemIndex];
+        var item = Items[draggedItemIndex];
         var to = SortableService.GetSortableList(toId)!;
         var ctx = new SortableTransferContext<TItem>(item, this, to);
 
@@ -496,9 +496,9 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void OnRemoveJs(int oldIndex, string toId, int newIndex)
     {
-        if (_suppressNextRemove)
+        if (suppressNextRemove)
         {
-            _suppressNextRemove = false;
+            suppressNextRemove = false;
             return;
         }
 
@@ -536,7 +536,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     //    OnDeselect?.Invoke(Items[index]);
     //}
 
-    int ISortableList.DraggedItemIndex => _draggedItemIndex;
+    int ISortableList.DraggedItemIndex => draggedItemIndex;
 
     object? ISortableList.GetItem(int index)
     {
@@ -547,8 +547,8 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
     bool ISortableList.SuppressNextRemove
     {
-        get => _suppressNextRemove;
-        set => _suppressNextRemove = value;
+        get => suppressNextRemove;
+        set => suppressNextRemove = value;
     }
 
     private TItem? TryCloneItem(TItem item)
@@ -566,11 +566,11 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         }
     }
 
-    private TItem? TryConvertItem(object item, ISortable sourceSortable)
+    private TItem? TryConvertItem(object item, ISortable from)
     {
         try
         {
-            var ctx = new SortableTransferContext<object>(item, sourceSortable, this);
+            var ctx = new SortableTransferContext<object>(item, from, this);
 
             return ConvertFunction!(ctx);
         }

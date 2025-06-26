@@ -45,10 +45,9 @@
                           CloneFunction="@(i => new Item1 { Name = i.Name + "_clone" })"
                           OnCloneException="OnCloneException"
                           Put="PutMode.False"
-                          Class="sortable-list">
-                <ChildContent Context="context">
-                    <Item1Component Item="context" />
-                </ChildContent>
+                          Class="sortable-list"
+                          Context="item">
+                <Item1Component Item="item" />
             </SortableList>
         </div>
         <div class="list-column">
@@ -107,14 +106,14 @@
         <div class="list-column">
             <h3>List</h3>
             @* <SortableList Items="GenerateItem1List(4)" *@
-            @*               Group="Drop" *@
+            @*               Group="drop" *@
             @*               Pull="PullMode.True" *@
             @*               DragClass="dragt" *@
             @*               Class="sortable-list"> *@
             @*     <Item1Component Item="context" /> *@
             @* </SortableList> *@
             <SortableList Items="@([1, 2, 3])"
-                          Group="Drop"
+                          Group="drop"
                           Pull="PullMode.Function"
                           PullFunction="@OnPull"
                           DragClass="drag"
@@ -210,7 +209,7 @@
 
     private bool OnPut(SortableTransferContext<object> ctx)
     {
-        return ctx.From.Group == "Drop";
+        return ctx.From.Group == "drop";
     }
 
     private bool OnPull(SortableTransferContext<int> ctx)
