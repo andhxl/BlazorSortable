@@ -22,12 +22,6 @@ export function initSortableList(id, options, component) {
         onEnd: (evt) => {
             component.invokeMethodAsync('OnEndJs');
         },
-        onAdd: (evt) => {
-            //const oldIndexes = extractIndexes(evt.oldIndicies);
-            //const newIndexes = extractIndexes(evt.newIndicies);
-
-            component.invokeMethodAsync('OnAddJs', evt.from.id, evt.pullMode === 'clone', evt.oldIndex, evt.newIndex);
-        },
         onUpdate: (evt) => {
             //const oldIndexes = extractIndexes(evt.oldIndicies);
             //const newIndexes = extractIndexes(evt.newIndicies);
@@ -38,6 +32,12 @@ export function initSortableList(id, options, component) {
 
             // Notify .NET to update its model and re-render
             component.invokeMethodAsync('OnUpdateJs', evt.oldIndex, evt.newIndex);
+        },
+        onAdd: (evt) => {
+            //const oldIndexes = extractIndexes(evt.oldIndicies);
+            //const newIndexes = extractIndexes(evt.newIndicies);
+
+            component.invokeMethodAsync('OnAddJs', evt.from.id, evt.oldIndex, evt.newIndex, evt.pullMode === 'clone');
         },
         onRemove: (evt) => {
             //const oldIndexes = extractIndexes(evt.oldIndicies);
@@ -50,7 +50,7 @@ export function initSortableList(id, options, component) {
                 evt.clone?.remove(); // Handle MultiDrag null case
             }
             else {
-                component.invokeMethodAsync('OnRemoveJs', evt.oldIndex);
+                component.invokeMethodAsync('OnRemoveJs', evt.oldIndex, evt.to.id, evt.newIndex);
             }
         },
         //onSelect: (evt) => {
@@ -79,7 +79,7 @@ export function initSortableDropZone(id, options, component) {
             //const oldIndexes = extractIndexes(evt.oldIndicies);
             //const newIndexes = extractIndexes(evt.newIndicies);
 
-            component.invokeMethodAsync('OnAddJs', evt.from.id, evt.pullMode === 'clone', evt.oldIndex);
+            component.invokeMethodAsync('OnAddJs', evt.from.id, evt.oldIndex, evt.newIndex, evt.pullMode === 'clone');
         }
     });
 }

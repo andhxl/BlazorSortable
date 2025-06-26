@@ -112,15 +112,28 @@ The `SortableEventArgs<TItem>` class provides information about sorting operatio
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `Item` | `TItem` | The item participating in the sorting operation |
-| `SourceSortable` | `ISortableListInfo` | Information about the source sortable list |
-| `IsClone` | `bool` | Indicates whether the item is a clone (created when dragging between lists) |
-| `OldIndex` | `int` | The previous index of the item in the list (-1 if no previous index) |
-| `NewIndex` | `int` | The new index of the item in the list (-1 if no new index) |
+| `TItem` | — | — | The type of the item |
+| `Item` | `TItem` | The item participating in the operation |
+| `From` | `ISortable` | Source sortable component |
+| `OldIndex` | `int` | The previous index of the item in the source sortable |
+| `To` | `ISortable` | Target sortable component |
+| `NewIndex` | `int` | The new index of the item in the target sortable |
+| `IsClone` | `bool` | Flag indicating whether the item is a clone |
 
-### ISortableListInfo
+### SortableTransferContext
 
-The `ISortableListInfo` interface provides information about a sortable list component:
+The `SortableTransferContext<TItem>` class represents the context of transferring an item between sortable components:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `TItem` | — | — | The type of the item being transferred |
+| `Item` | `TItem` | The item being transferred between sortable components |
+| `From` | `ISortable` | The source sortable component |
+| `To` | `ISortable` | The target sortable component |
+
+### ISortable
+
+The `ISortable` interface provides information about a sortable component:
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -147,17 +160,17 @@ The `ISortableListInfo` interface provides information about a sortable list com
 | `Style` | `string` | `null` | Inline CSS styles for the container |
 | `ChildContent` | `RenderFragment<TItem>` | `null` | Template for displaying each list item. Can be a component, HTML elements, or any Razor markup |
 | `KeySelector` | `Func<TItem, object>` | `null` | Function for generating the key used in `@key`. If not set, the item itself is used |
-| `Id` | `string` | `Random GUID` | Unique identifier of the component. Used internally for coordination between Sortable components and for identifying lists in converters. Must be globally unique |
+| `Id` | `string` | `Random GUID` | Unique identifier of the component. Used internally for coordination between Sortable components. Must be globally unique |
 | `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
 | `Pull` | `PullMode` | `null` | Mode for pulling items from the list |
 | `PullGroups` | `string[]` | `null` | **Required when `Pull="PullMode.Groups"`.** Specifies the groups into which items from this list can be dragged |
 | `CloneFunction` | `Func<TItem, TItem>` | `null` | **Required when `Pull="PullMode.Clone"`.** A factory method used to create a clone of the dragged item |
 | `OnCloneException` | `Action<Exception>` | `null` | Raised when an exception occurs during object cloning |
-| `PullFunction` | `Func<TItem, ISortableListInfo, bool>` | `null` | **Required when `Pull="PullMode.Function"`.** Function to determine if an item can be pulled to the target list |
+| `PullFunction` | `Func<SortableTransferContext<TItem>, bool>` | `null` | **Required when `Pull="PullMode.Function"`.** Function to determine if an item can be pulled to the target Sortable component |
 | `Put` | `PutMode` | `null` | Mode for adding items to the list |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
-| `PutFunction` | `Func<object, ISortableListInfo, bool>` | `null` | **Required when `Put="PutMode.Function"`.** Function to determine if an item can be put into this list. This function is invoked synchronously from JavaScript using `invokeMethod` |
-| `ConvertFunction` | `Func<object, ISortableListInfo, TItem?>` | `null` | Function to convert items from other SortableLists to the target type |
+| `PutFunction` | `Func<SortableTransferContext<object>, bool>` | `null` | **Required when `Put="PutMode.Function"`.** Function to determine if an item can be put into this list. This function is invoked synchronously from JS using `invokeMethod` |
+| `ConvertFunction` | `Func<SortableTransferContext<object>, TItem?>` | `null` | Function to convert items from other Sortable component to the target type |
 | `OnConvertException` | `Action<Exception>` | `null` | Raised when an exception occurs during item conversion |
 | `Sort` | `bool` | `true` | Enables or disables sorting of items within the list |
 | `Disabled` | `bool` | `false` | Disables the Sortable component when set to true |
@@ -186,10 +199,11 @@ The `ISortableListInfo` interface provides information about a sortable list com
 | `Attributes` | `IReadOnlyDictionary<string, object>` | `null` | Additional custom attributes that will be rendered by the component |
 | `Class` | `string` | `null` | CSS class for the container |
 | `Style` | `string` | `null` | Inline CSS styles for the container |
+| `Id` | `string` | `Random GUID` | Unique identifier of the component. Used internally for coordination between Sortable components. Must be globally unique |
 | `Group` | `string` | `Random GUID` | Name of the group for interacting with other sortable instances |
 | `Put` | `PutMode` | `null` | Mode for adding items to the zone |
 | `PutGroups` | `string[]` | `null` | **Required when `Put="PutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
-| `PutFunction` | `Func<object, ISortableListInfo, bool>` | `null` | **Required when `Put="PutMode.Function"`.** Function to determine if an item can be put into this zone. This function is invoked synchronously from JavaScript using `invokeMethod` |
+| `PutFunction` | `Func<SortableTransferContext<object>, bool>` | `null` | **Required when `Put="PutMode.Function"`.** Function to determine if an item can be put into this zone. This function is invoked synchronously from JS using `invokeMethod` |
 | `Disabled` | `bool` | `false` | Disables the Sortable component when set to true |
 | `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the placeholder during drag |
 | `OnDrop` | `Action<SortableEventArgs<object>>` | `null` | Raised when an item is dropped in the zone |

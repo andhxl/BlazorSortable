@@ -115,7 +115,8 @@
             @* </SortableList> *@
             <SortableList Items="@([1, 2, 3])"
                           Group="Drop"
-                          Pull="PullMode.True"
+                          Pull="PullMode.Function"
+                          PullFunction="@OnPull"
                           DragClass="drag"
                           Class="sortable-list">
                 @context
@@ -149,12 +150,12 @@
         return list;
     }
 
-    private Item2? ItemConverter1(object item, ISortableListInfo info)
+    private Item2? ItemConverter1(SortableTransferContext<object> ctx)
     {
-        switch (item)
+        switch (ctx.Item)
         {
             case Item1 item1:
-                switch (info.Id)
+                switch (ctx.From.Id)
                 {
                     case "list1":
                         return new Item2
@@ -207,8 +208,13 @@
 
     }
 
-    private bool OnPut(object item, ISortableListInfo sourceSortable)
+    private bool OnPut(SortableTransferContext<object> ctx)
     {
-        return sourceSortable.Group == "Drop";
+        return ctx.From.Group == "Drop";
+    }
+
+    private bool OnPull(SortableTransferContext<int> ctx)
+    {
+        return true;
     }
 }

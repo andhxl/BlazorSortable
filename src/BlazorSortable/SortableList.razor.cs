@@ -32,21 +32,12 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [Parameter]
     public Func<TItem, object>? KeySelector { get; set; }
 
-    /// <summary>
-    /// Unique identifier of the component. Must be globally unique across all SortableList instances.
-    /// </summary>
-    /// <remarks>
-    /// If not set explicitly, a GUID will be generated automatically.
-    /// This ID is required for internal coordination between Sortable components and for using converters.
-    /// If two SortableList are registered with the same ID, an <see cref="InvalidOperationException"/> will be thrown during rendering.
-    /// Set this manually only if you need to identify the component externally, e.g., to provide a converter for it.
-    /// </remarks>
+    /// <inheritdoc />
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when multiple SortableList components are registered with the same ID during rendering.
+    /// </exception>
     [Parameter]
-    public string Id
-    {
-        get => id;
-        set => id = value;
-    }
+    public override string Id { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
     /// Mode for pulling items from the list.
@@ -78,8 +69,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// Called when an unhandled exception occurs during object cloning.
     /// </summary>
     /// <remarks>
-    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged 
-    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged  in the parent component.
     /// </remarks>
     [Parameter]
     public Action<Exception>? OnCloneException { get; set; }
@@ -90,10 +80,10 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// <remarks>
     /// Used only when <see cref="Pull"/> is set to <see cref="PullMode.Function"/>.
     /// The function receives the item being dragged and the target list info.
-    /// Return true to allow pulling, false to deny.
+    /// Return <c>true</c> to allow pulling, <c>false</c> to deny.
     /// </remarks>
     [Parameter]
-    public Func<TItem, ISortableListInfo, bool>? PullFunction { get; set; }
+    public Func<SortableTransferContext<TItem>, bool>? PullFunction { get; set; }
 
     /// <summary>
     /// Dictionary of converters for transforming items from other SortableLists.
@@ -104,14 +94,13 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// This is used when items are dragged between lists with different data types.
     /// </remarks>
     [Parameter]
-    public Func<object, ISortableListInfo, TItem?>? ConvertFunction { get; set; }
+    public Func<SortableTransferContext<object>, TItem?>? ConvertFunction { get; set; }
 
     /// <summary>
     /// Called when an unhandled exception occurs during converter execution.
     /// </summary>
     /// <remarks>
-    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged 
-    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged  in the parent component.
     /// </remarks>
     [Parameter]
     public Action<Exception>? OnConvertException { get; set; }
@@ -258,8 +247,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// Event that occurs when an item is added to the list.
     /// </summary>
     /// <remarks>
-    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged
-    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged in the parent component.
     /// </remarks>
     [Parameter]
     public Action<SortableEventArgs<TItem>>? OnAdd { get; set; }
@@ -268,8 +256,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// Event that occurs when the order of items in the list is updated.
     /// </summary>
     /// <remarks>
-    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged
-    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged in the parent component.
     /// </remarks>
     [Parameter]
     public Action<SortableEventArgs<TItem>>? OnUpdate { get; set; }
@@ -278,8 +265,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// Event that occurs when an item is removed from the list.
     /// </summary>
     /// <remarks>
-    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged
-    /// in the parent component, which can cause conflicts with dynamic collections.
+    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged in the parent component.
     /// </remarks>
     [Parameter]
     public Action<SortableEventArgs<TItem>>? OnRemove { get; set; }
@@ -288,21 +274,19 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     ///// Event that occurs when an item is selected in multi-drag mode.
     ///// </summary>
     ///// <remarks>
-    ///// Uses Action instead of EventCallback to prevent automatic StateHasChanged
-    ///// in the parent component, which can cause conflicts with dynamic collections.
+    ///// Uses Action instead of EventCallback to prevent automatic StateHasChanged in the parent component.
     ///// </remarks>
     //[Parameter]
-    //public Action<SortableEventArgs<TItem>>? OnSelect { get; set; }
+    //public Action<TItem>? OnSelect { get; set; }
 
     ///// <summary>
     ///// Event that occurs when an item is deselected in multi-drag mode.
     ///// </summary>
     ///// <remarks>
-    ///// Uses Action instead of EventCallback to prevent automatic StateHasChanged
-    ///// in the parent component, which can cause conflicts with dynamic collections.
+    ///// Uses Action instead of EventCallback to prevent automatic StateHasChanged in the parent component.
     ///// </remarks>
     //[Parameter]
-    //public Action<SortableEventArgs<TItem>>? OnDeselect { get; set; }
+    //public Action<TItem>? OnDeselect { get; set; }
 
     private int _draggedItemIndex = -1;
     private bool _suppressNextRemove;
@@ -326,7 +310,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     {
         if (firstRender)
         {
-            SortableService.RegisterSortableList(id, this);
+            SortableService.RegisterSortableList(Id, this);
         }
     }
 
@@ -407,12 +391,12 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// <summary>
     /// Called from JavaScript when the drag operation starts.
     /// </summary>
-    /// <param name="oldIndex">The index of the item being dragged.</param>
+    /// <param name="index">The index of the item being dragged.</param>
     [JSInvokable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public void OnStartJs(int oldIndex)
+    public void OnStartJs(int index)
     {
-        _draggedItemIndex = oldIndex;
+        _draggedItemIndex = index;
     }
 
     /// <summary>
@@ -426,56 +410,19 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     }
 
     /// <summary>
-    /// Called from JavaScript to determine if an item can be pulled to the target list.
+    /// Called from JavaScript to determine if an item can be pulled to the target sortable.
     /// </summary>
-    /// <param name="targetSortableId">The ID of the target sortable list.</param>
-    /// <returns>True if the item can be pulled; otherwise, false.</returns>
+    /// <param name="toId">The ID of the target sortable.</param>
+    /// <returns><c>true</c> if the item can be pulled; otherwise, <c>false</c>.</returns>
     [JSInvokable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public bool OnPullJs(string targetSortableId)
+    public bool OnPullJs(string toId)
     {
         var item = Items[_draggedItemIndex];
-        var targetSortable = SortableService.GetSortableList(targetSortableId)!;
+        var to = SortableService.GetSortableList(toId)!;
+        var ctx = new SortableTransferContext<TItem>(item, this, to);
 
-        return PullFunction?.Invoke(item, targetSortable) ?? false;
-    }
-
-    /// <summary>
-    /// Event handler for adding an item, called from JavaScript.
-    /// </summary>
-    /// <param name="sourceId">Source list identifier.</param>
-    /// <param name="isClone">Flag indicating whether the item is a clone.</param>
-    /// <param name="oldIndex">Item index in the source list.</param>
-    /// <param name="newIndex">Item index in the target list.</param>
-    [JSInvokable]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public void OnAddJs(string sourceId, bool isClone, int oldIndex, int newIndex)
-    {
-        var sourceSortable = SortableService.GetSortableList(sourceId)!;
-        sourceSortable.SuppressNextRemove = !isClone;
-
-        var sourceObject = sourceSortable.GetItem(oldIndex);
-        if (sourceObject is null) return;
-
-        TItem? itemToAdd = default;
-
-        if (ConvertFunction is not null)
-        {
-            itemToAdd = TryConvertItem(sourceObject, sourceSortable);
-        }
-        else if (sourceObject is TItem sourceItem)
-        {
-            itemToAdd = sourceItem;
-        }
-
-        if (itemToAdd is null) return;
-
-        Items.Insert(newIndex, itemToAdd);
-        sourceSortable.SuppressNextRemove = false;
-        StateHasChanged();
-
-        var args = new SortableEventArgs<TItem>(itemToAdd, sourceSortable, oldIndex, newIndex) { IsClone = isClone };
-        OnAdd?.Invoke(args);
+        return PullFunction?.Invoke(ctx) ?? false;
     }
 
     /// <summary>
@@ -488,22 +435,66 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public void OnUpdateJs(int oldIndex, int newIndex)
     {
         var itemToMove = Items[oldIndex];
+
         Items.RemoveAt(oldIndex);
         Items.Insert(newIndex, itemToMove);
 
         StateHasChanged();
 
-        var args = new SortableEventArgs<TItem>(itemToMove, this, oldIndex, newIndex);
+        var args = new SortableEventArgs<TItem>(itemToMove, this, oldIndex, this, newIndex);
+
         OnUpdate?.Invoke(args);
+    }
+
+    /// <summary>
+    /// Event handler for adding an item, called from JavaScript.
+    /// </summary>
+    /// <param name="fromId">Source Sortable identifier.</param>
+    /// <param name="oldIndex">Item index in the source Sortable.</param>
+    /// <param name="newIndex">Item index in the target Sortable.</param>
+    /// <param name="isClone">Flag indicating whether the item is a clone.</param>
+    [JSInvokable]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public void OnAddJs(string fromId, int oldIndex, int newIndex, bool isClone)
+    {
+        var from = SortableService.GetSortableList(fromId)!;
+        from.SuppressNextRemove = !isClone;
+
+        var sourceObject = from.GetItem(oldIndex);
+        if (sourceObject is null) return;
+
+        TItem? itemToAdd = default;
+
+        if (ConvertFunction is not null)
+        {
+            itemToAdd = TryConvertItem(sourceObject, from);
+        }
+        else if (sourceObject is TItem sourceItem)
+        {
+            itemToAdd = sourceItem;
+        }
+
+        if (itemToAdd is null) return;
+
+        Items.Insert(newIndex, itemToAdd);
+        from.SuppressNextRemove = false;
+
+        StateHasChanged();
+
+        var args = new SortableEventArgs<TItem>(itemToAdd, from, oldIndex, this, newIndex, isClone);
+
+        OnAdd?.Invoke(args);
     }
 
     /// <summary>
     /// Event handler for removing an item, called from JavaScript.
     /// </summary>
-    /// <param name="index">Index of the item to remove.</param>
+    /// <param name="oldIndex">Item index in the source Sortable.</param>
+    /// <param name="toId">Target Sortable identifier.</param>
+    /// <param name="newIndex">Item index in the target Sortable.</param>
     [JSInvokable]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public void OnRemoveJs(int index)
+    public void OnRemoveJs(int oldIndex, string toId, int newIndex)
     {
         if (_suppressNextRemove)
         {
@@ -511,12 +502,15 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
             return;
         }
 
-        var itemToRemove = Items[index];
-        Items.RemoveAt(index);
+        var itemToRemove = Items[oldIndex];
+
+        Items.RemoveAt(oldIndex);
 
         StateHasChanged();
 
-        var args = new SortableEventArgs<TItem>(itemToRemove, this, index);
+        var to = SortableService.GetSortableList(toId)!;
+        var args = new SortableEventArgs<TItem>(itemToRemove, this, oldIndex, to, newIndex);
+
         OnRemove?.Invoke(args);
     }
 
@@ -528,8 +522,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     //[EditorBrowsable(EditorBrowsableState.Never)]
     //public void OnSelectJs(int index)
     //{
-    //    var args = new SortableEventArgs<TItem>(Items[index], this, index);
-    //    OnSelect?.Invoke(args);
+    //    OnSelect?.Invoke(Items[index]);
     //}
 
     ///// <summary>
@@ -540,8 +533,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     //[EditorBrowsable(EditorBrowsableState.Never)]
     //public void OnDeselectJs(int index)
     //{
-    //    var args = new SortableEventArgs<TItem>(Items[index], this, index);
-    //    OnDeselect?.Invoke(args);
+    //    OnDeselect?.Invoke(Items[index]);
     //}
 
     int ISortableList.DraggedItemIndex => _draggedItemIndex;
@@ -574,11 +566,13 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         }
     }
 
-    private TItem? TryConvertItem(object item, ISortableListInfo sourceSortable)
+    private TItem? TryConvertItem(object item, ISortable sourceSortable)
     {
         try
         {
-            return ConvertFunction!(item, sourceSortable);
+            var ctx = new SortableTransferContext<object>(item, sourceSortable, this);
+
+            return ConvertFunction!(ctx);
         }
         catch (Exception ex)
         {
@@ -589,7 +583,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
     private protected override ValueTask DisposeAsyncCore()
     {
-        SortableService.UnregisterSortableList(id);
+        SortableService.UnregisterSortableList(Id);
 
         return ValueTask.CompletedTask;
     }
