@@ -1,10 +1,10 @@
-﻿namespace BlazorSortable.Internal;
+namespace BlazorSortable.Internal;
 
 internal interface ISortableService
 {
-    public void RegisterSortableList(string id, ISortableList sortableList);
+    void RegisterSortableList(string id, ISortableList sortableList);
 
-    public void UnregisterSortableList(string id);
+    void UnregisterSortableList(string id);
 
-    public ISortableList? GetSortableList(string id);
+    ISortableList? GetSortableList(string id);
 }
