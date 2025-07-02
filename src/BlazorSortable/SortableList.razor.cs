@@ -437,12 +437,11 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         var itemToMove = Items[oldIndex];
 
         Items.RemoveAt(oldIndex);
-        Items.Insert(newIndex, itemToMove);
+        newIndex = InsertOrAddItem(newIndex, itemToMove); // Sometimes SortableJS provides newIndex one greater than the last valid index
 
         StateHasChanged();
 
         var args = new SortableEventArgs<TItem>(itemToMove, this, oldIndex, this, newIndex);
-
         OnUpdate?.Invoke(args);
     }
 
@@ -482,7 +481,6 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         StateHasChanged();
 
         var args = new SortableEventArgs<TItem>(itemToAdd, from, oldIndex, this, newIndex, isClone);
-
         OnAdd?.Invoke(args);
     }
 
@@ -510,7 +508,6 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         var to = SortableService.GetSortableList(toId)!;
         var args = new SortableEventArgs<TItem>(itemToRemove, this, oldIndex, to, newIndex);
-
         OnRemove?.Invoke(args);
     }
 
@@ -551,6 +548,18 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         set => suppressNextRemove = value;
     }
 
+    private int InsertOrAddItem(int index, TItem item)
+    {
+        if (index >= Items.Count)
+        {
+            Items.Add(item);
+            return Items.Count - 1;
+        }
+
+        Items.Insert(index, item);
+        return index;
+    }
+
     private TItem? TryCloneItem(TItem item)
     {
         if (CloneFunction is null) return default;
@@ -571,7 +580,6 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         try
         {
             var ctx = new SortableTransferContext<object>(item, from, this);
-
             return ConvertFunction!(ctx);
         }
         catch (Exception ex)

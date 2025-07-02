@@ -62,7 +62,6 @@ public partial class SortableDropZone : SortableBase
         if (item is null) return;
 
         var args = new SortableEventArgs<object>(item, from, oldIndex, this, newIndex, isClone);
-
         OnDrop?.Invoke(args);
     }
 }
