@@ -70,14 +70,15 @@ builder.Services.AddSortableServices();
 
 ### SortableList
 
-#### With a component
 ```razor
 <SortableList Items="Persons"
               Class="my-sortable-list"
               Group="group1">
     <PersonComponent Person="context" />
 </SortableList>
+```
 
+```razor
 <SortableList TItem="Person"
               Items="Persons"
               Class="my-sortable-list"

@@ -54,7 +54,7 @@
             <h3>List 2</h3>
             <SortableList Items="GenerateItem1List(3, 4)"
                           Class="sortable-list">
-                <Item1Component Item="@context" />
+                <Item1Component Item="context" />
             </SortableList>
         </div>
     </div>
@@ -89,7 +89,7 @@
                           Items="GenerateItem2List(2)"
                           Put="PutMode.Groups"
                           PutGroups="@(["group3"])"
-                          ConvertFunction="@ItemConverter1"
+                          ConvertFunction="ItemConverter1"
                           OnConvertException="OnConvertException"
                           Pull="PullMode.False"
                           Class="sortable-list"
@@ -115,7 +115,7 @@
             <SortableList Items="@([1, 2, 3])"
                           Group="drop"
                           Pull="PullMode.Function"
-                          PullFunction="@OnPull"
+                          PullFunction="OnPull"
                           DragClass="drag"
                           Class="sortable-list">
                 @context
@@ -126,8 +126,8 @@
             <SortableDropZone Class="drop-zone"
                               GhostClass="ghost-red"
                               Put="PutMode.Function"
-                              PutFunction="@OnPut"
-                              OnDrop="@OnDrop" />
+                              PutFunction="OnPut"
+                              OnDrop="OnDrop" />
         </div>
     </div>
 </div>

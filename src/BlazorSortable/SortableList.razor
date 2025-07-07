@@ -11,7 +11,7 @@
         @foreach (var item in Items)
         {
             <div @key="@(KeySelector?.Invoke(item) ?? item)"
-                 class="@(DraggableSelector?.Invoke(item) == true ? DraggableClass : "")">
+                 class="@(DraggableSelector?.Invoke(item) == true ? DraggableClass : null)">
                 @ChildContent(item)
             </div>
         }
