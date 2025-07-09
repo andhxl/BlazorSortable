@@ -589,10 +589,9 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
         }
     }
 
-    private protected override ValueTask DisposeAsyncCore()
+    /// <inheritdoc />
+    public override void Dispose()
     {
         SortableService.UnregisterSortableList(Id);
-
-        return ValueTask.CompletedTask;
     }
 }

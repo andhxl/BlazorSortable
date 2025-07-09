@@ -9,7 +9,7 @@ namespace BlazorSortable.Internal;
 /// <summary>
 /// Base abstract class for Sortable components.
 /// </summary>
-public abstract class SortableBase : ComponentBase, IAsyncDisposable, ISortable
+public abstract class SortableBase : ComponentBase, IAsyncDisposable, IDisposable, ISortable
 {
     /// <summary>
     /// CSS class applied to the root container of the Sortable component.
@@ -148,7 +148,7 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable, ISortable
     }
 
     /// <summary>
-    /// Disposes of component resources, including JavaScript module and .NET object references.
+    /// Asynchronously disposes of resources.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
@@ -163,7 +163,13 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable, ISortable
         selfReference?.Dispose();
 
         await DisposeAsyncCore();
+        Dispose();
     }
 
     private protected virtual ValueTask DisposeAsyncCore() => ValueTask.CompletedTask;
+
+    /// <summary>
+    /// Synchronously disposes of resources.
+    /// </summary>
+    public virtual void Dispose() { }
 }
