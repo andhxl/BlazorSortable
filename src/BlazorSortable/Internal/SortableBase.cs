@@ -154,12 +154,18 @@ public abstract class SortableBase : ComponentBase, IAsyncDisposable, IDisposabl
     {
         if (jsModule is not null)
         {
-            await jsModule.InvokeVoidAsync("destroySortable", Id);
-            await jsModule.DisposeAsync();
+            try
+            {
+                await jsModule.InvokeVoidAsync("destroySortable", Id);
+                await jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore - Blazor Server Circuit Disconnected
+            }
         }
 
         // Dispose selfReference after JavaScript module to prevent ObjectDisposedException
-        // when JS tries to serialize already disposed DotNetObjectReference
         selfReference?.Dispose();
 
         await DisposeAsyncCore();
