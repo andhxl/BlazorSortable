@@ -94,54 +94,11 @@ builder.Services.AddSortable();
 <Sortable TItem="object" Class="my-sortable-drop-zone" />
 ```
 
-## Events
-
-All events receive a `SortableEventArgs<TItem>` parameter containing information about the operation.
-
-### SortableEventArgs
-
-The `SortableEventArgs<TItem>` class provides information about sorting operations.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `Item` | `TItem` | The item participating in the operation |
-| `From` | `ISortableInfo` | Source sortable component |
-| `OldIndex` | `int` | The previous index of the item in the source sortable |
-| `To` | `ISortableInfo` | Target sortable component |
-| `NewIndex` | `int` | The new index of the item in the target sortable |
-| `IsClone` | `bool` | Flag indicating whether the item is a clone |
-
-### SortableTransferContext
-
-The `SortableTransferContext<TItem>` class represents the context of transferring an item between sortable components.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `Item` | `TItem` | The item being transferred between sortable components |
-| `From` | `ISortableInfo` | The source sortable component |
-| `To` | `ISortableInfo` | The target sortable component |
-
-### ISortableInfo
-
-The `ISortableInfo` interface provides information about a sortable component.
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `Id` | `string` | Unique identifier of the component |
-| `Group` | `string` | Group name for interaction with other Sortable components |
-
-### Notes
-
-- **Order of events** when dragging between lists:
-  1. `OnAdd` is triggered **first**.
-  2. `OnRemove` is triggered **after**.
-- During `OnAdd`, the item is **still present in the source list**.
-
 ## Component Parameters
 
-> **Note:** MultiDrag plugin support will be added in future releases.
-
 ### Sortable
+
+> **Note:** MultiDrag plugin support will be added in future releases.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -201,3 +158,46 @@ The `ISortableInfo` interface provides information about a sortable component.
 | `False` | Prohibits adding items to the list |
 | `Groups` | Allows adding items only from specified groups (requires `PutGroups` parameter) |
 | `Function` | Uses a custom function to determine if items can be added (requires `PutFunction` parameter) |
+
+## Events
+
+All events receive a `SortableEventArgs<TItem>` parameter containing information about the operation.
+
+### SortableEventArgs
+
+The `SortableEventArgs<TItem>` class provides information about sorting operations.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Item` | `TItem` | The item participating in the operation |
+| `From` | `ISortableInfo` | Source sortable component |
+| `OldIndex` | `int` | The previous index of the item in the source sortable |
+| `To` | `ISortableInfo` | Target sortable component |
+| `NewIndex` | `int` | The new index of the item in the target sortable |
+| `IsClone` | `bool` | Flag indicating whether the item is a clone |
+
+### SortableTransferContext
+
+The `SortableTransferContext<TItem>` class represents the context of transferring an item between sortable components.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Item` | `TItem` | The item being transferred between sortable components |
+| `From` | `ISortableInfo` | The source sortable component |
+| `To` | `ISortableInfo` | The target sortable component |
+
+### ISortableInfo
+
+The `ISortableInfo` interface provides information about a sortable component.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Id` | `string` | Unique identifier of the component |
+| `Group` | `string` | Group name for interaction with other Sortable components |
+
+### Notes
+
+- **Order of events** when dragging between lists:
+  1. `OnAdd` is triggered **first**.
+  2. `OnRemove` is triggered **after**.
+- During `OnAdd`, the item is **still present in the source list**.
