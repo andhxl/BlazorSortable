@@ -1,6 +1,8 @@
+@* TODO: Make a normal demo with GitHub Pages *@
+
 @page "/"
 
-<h1>BlazorSortable Demo</h1>
+<h1>BlazorSortableDemo</h1>
 
 <a href="/page1">Go to Page1</a>
 
@@ -9,26 +11,26 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List 1</h3>
-            <SortableList Items="GenerateItem1List(3)"
-                          Group="group1"
-                          Class="sortable-list"
-                          Style="background-color: silver;"
-                          Handle=".my-handle">
+            <Sortable Items="GenerateItem1List(3)"
+                      Group="group1"
+                      Class="sortable-list"
+                      Style="background-color: silver;"
+                      Handle=".my-handle">
                 <Item1Component Item="context" />
-            </SortableList>
+            </Sortable>
         </div>
         <div class="list-column">
             <h3>List 2</h3>
-            <SortableList Items="GenerateItem1List(3, 4)"
-                          Group="group1"
-                          OnAdd="OnAddItem1"
-                          OnUpdate="OnUpdateItem1"
-                          OnRemove="OnRemoveItem1"
-                          Class="sortable-list"
-                          Style="background-color: cadetblue;"
-                          Handle=".my-handle">
+            <Sortable Items="GenerateItem1List(3, 4)"
+                      Group="group1"
+                      OnAdd="OnAddItem1"
+                      OnUpdate="OnUpdateItem1"
+                      OnRemove="OnRemoveItem1"
+                      Class="sortable-list"
+                      Style="background-color: cadetblue;"
+                      Handle=".my-handle">
                 <Item1Component Item="context" />
-            </SortableList>
+            </Sortable>
         </div>
     </div>
 </div>
@@ -38,24 +40,23 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List 1</h3>
-            <SortableList Items="GenerateItem1List(3)"
-                          Group="group2"
-                          Swap="true"
-                          Pull="PullMode.Clone"
-                          CloneFunction="@(i => new Item1 { Name = i.Name + "_clone" })"
-                          OnCloneException="OnCloneException"
-                          Put="PutMode.False"
-                          Class="sortable-list"
-                          Context="item">
+            <Sortable Items="GenerateItem1List(3)"
+                      Group="group2"
+                      Pull="SortablePullMode.Clone"
+                      CloneFunction="@(i => new Item1 { Name = i.Name + "_clone" })"
+                      Put="SortablePutMode.False"
+                      Class="sortable-list"
+                      Context="item">
                 <Item1Component Item="item" />
-            </SortableList>
+            </Sortable>
         </div>
         <div class="list-column">
             <h3>List 2</h3>
-            <SortableList Items="GenerateItem1List(3, 4)"
-                          Class="sortable-list">
+            <Sortable Items="GenerateItem1List(3, 4)"
+                      Group="group2"
+                      Class="sortable-list">
                 <Item1Component Item="context" />
-            </SortableList>
+            </Sortable>
         </div>
     </div>
 </div>
@@ -65,37 +66,36 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List 1</h3>
-            <SortableList Items="GenerateItem1List(3)"
-                          Id="list1"
-                          Group="group3"
-                          Put="PutMode.False"
-                          Class="sortable-list">
+            <Sortable Items="GenerateItem1List(3)"
+                      Id="list1"
+                      Group="group3"
+                      Put="SortablePutMode.False"
+                      Class="sortable-list">
                 <Item1Component Item="context" />
-            </SortableList>
+            </Sortable>
         </div>
         <div class="list-column">
-            <h3>List 2 (missing converter)</h3>
-            <SortableList Items="GenerateItem1List(3, 4)"
-                          Group="group3"
-                          Id="list2"
-                          Put="PutMode.False"
-                          Class="sortable-list">
+            <h3>List 2</h3>
+            <Sortable Items="GenerateItem1List(3, 4)"
+                      Group="group3"
+                      Id="list2"
+                      Put="SortablePutMode.False"
+                      Class="sortable-list">
                 <Item1Component Item="context" />
-            </SortableList>
+            </Sortable>
         </div>
         <div class="list-column">
             <h3>List 3</h3>
-            <SortableList TItem="Item2"
-                          Items="GenerateItem2List(2)"
-                          Put="PutMode.Groups"
-                          PutGroups="@(["group3"])"
-                          ConvertFunction="ItemConverter1"
-                          OnConvertException="OnConvertException"
-                          Pull="PullMode.False"
-                          Class="sortable-list"
-                          Context="item">
+            <Sortable TItem="Item2"
+                      Items="GenerateItem2List(2)"
+                      Put="SortablePutMode.Groups"
+                      PutGroups="@(["group3"])"
+                      ConvertFunction="ItemConverter1"
+                      Pull="SortablePullMode.False"
+                      Class="sortable-list"
+                      Context="item">
                 @($"{item.Name}: {item.Value} ({item.Type})")
-            </SortableList>
+            </Sortable>
         </div>
     </div>
 </div>
@@ -105,29 +105,22 @@
     <div class="lists-row">
         <div class="list-column">
             <h3>List</h3>
-            @* <SortableList Items="GenerateItem1List(4)" *@
-            @*               Group="drop" *@
-            @*               Pull="PullMode.True" *@
-            @*               DragClass="dragt" *@
-            @*               Class="sortable-list"> *@
-            @*     <Item1Component Item="context" /> *@
-            @* </SortableList> *@
-            <SortableList Items="@([1, 2, 3])"
-                          Group="drop"
-                          Pull="PullMode.Function"
-                          PullFunction="OnPull"
-                          DragClass="drag"
-                          Class="sortable-list">
+            <Sortable Items="@([1, 2, 3])"
+                      Group="drop"
+                      Pull="SortablePullMode.Function"
+                      PullFunction="OnPull"
+                      DragClass="drag"
+                      Class="sortable-list">
                 @context
-            </SortableList>
+            </Sortable>
         </div>
         <div class="list-column">
             <h3>Drop zone</h3>
-            <SortableDropZone Class="drop-zone"
-                              GhostClass="ghost-red"
-                              Put="PutMode.Function"
-                              PutFunction="OnPut"
-                              OnDrop="OnDrop" />
+            <Sortable TItem="object"
+                      Class="drop-zone"
+                      GhostClass="ghost-red"
+                      Put="SortablePutMode.Function"
+                      PutFunction="OnPut" />
         </div>
     </div>
 </div>
@@ -162,7 +155,7 @@
                             Name = item1.Name + " from list1",
                             Value = 100
                         };
-                    case "list2_":
+                    case "list2":
                         return new Item2
                         {
                             Name = item1.Name + " from list2",
@@ -177,12 +170,12 @@
         return null;
     }
 
-    private void OnAddItem1(SortableEventArgs<Item1> args)
+    private void OnUpdateItem1(SortableEventArgs<Item1> args)
     {
 
     }
 
-    private void OnUpdateItem1(SortableEventArgs<Item1> args)
+    private void OnAddItem1(SortableEventArgs<Item1> args)
     {
 
     }
@@ -192,28 +185,13 @@
 
     }
 
-    private void OnDrop(SortableEventArgs<object> args)
+    private bool OnPull(SortableTransferContext<int> ctx)
     {
-
-    }
-
-    private void OnCloneException(Exception ex)
-    {
-
-    }
-
-    private void OnConvertException(Exception ex)
-    {
-
+        return true;
     }
 
     private bool OnPut(SortableTransferContext<object> ctx)
     {
         return ctx.From.Group == "drop";
-    }
-
-    private bool OnPull(SortableTransferContext<int> ctx)
-    {
-        return true;
     }
 }

@@ -1,4 +1,4 @@
-export function initSortableList(id, options, component) {
+export function initSortable(id, options, component) {
     const el = document.getElementById(id);
     if (!el) return;
 
@@ -59,28 +59,6 @@ export function initSortableList(id, options, component) {
         //onDeselect: (evt) => {
         //    component.invokeMethodAsync('OnDeselectJs', evt.oldIndex);
         //}
-    });
-}
-
-export function initSortableDropZone(id, options, component) {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    if (options.group.put === "function") {
-        options.group.put = function (to, from, dragEl, evt) {
-            return component.invokeMethod('OnPutJs', from.el.id);
-        };
-    }
-
-    // TODO: MultiDrag
-    el._sortable = new Sortable(el, {
-        ...options,
-        onAdd: (evt) => {
-            //const oldIndexes = extractIndexes(evt.oldIndicies);
-            //const newIndexes = extractIndexes(evt.newIndicies);
-
-            component.invokeMethodAsync('OnAddJs', evt.from.id, evt.oldIndex, evt.newIndex, evt.pullMode === 'clone');
-        }
     });
 }
 

@@ -10,4 +10,4 @@ namespace BlazorSortable;
 /// <param name="To">Target sortable.</param>
 /// <param name="NewIndex">The new index of the item in the target sortable.</param>
 /// <param name="IsClone">Flag indicating whether the item is a clone.</param>
-public record SortableEventArgs<TItem>(TItem Item, ISortable From, int OldIndex, ISortable To, int NewIndex, bool IsClone = false);
+public record SortableEventArgs<TItem>(TItem Item, ISortableInfo From, int OldIndex, ISortableInfo To, int NewIndex, bool IsClone = false);

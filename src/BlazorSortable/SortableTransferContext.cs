@@ -7,4 +7,4 @@ namespace BlazorSortable;
 /// <param name="Item">The item being transferred between sortable components.</param>
 /// <param name="From">The source sortable component.</param>
 /// <param name="To">The target sortable component.</param>
-public record SortableTransferContext<TItem>(TItem Item, ISortable From, ISortable To);
+public record SortableTransferContext<TItem>(TItem Item, ISortableInfo From, ISortableInfo To);

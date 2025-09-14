@@ -1,10 +1,8 @@
 namespace BlazorSortable.Internal;
 
-internal interface ISortableList : ISortable
+internal interface ISortableList : ISortableInfo
 {
+    object this[int index] { get; }
+
     int DraggedItemIndex { get; }
-
-    object? GetItem(int index);
-
-    bool SuppressNextRemove { get; set; }
 }

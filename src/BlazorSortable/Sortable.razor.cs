@@ -8,16 +8,16 @@ namespace BlazorSortable;
 // TODO: MultiDrag
 
 /// <summary>
-/// Component for creating sortable lists with drag and drop functionality.
+/// Component for creating sortable with drag and drop functionality.
 /// </summary>
 /// <typeparam name="TItem">Type of items in the list.</typeparam>
-public partial class SortableList<TItem> : SortableBase, ISortableList
+public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
 {
     /// <summary>
     /// List of items to display and sort.
     /// </summary>
-    [Parameter, EditorRequired]
-    public IList<TItem> Items { get; set; } = default!;
+    [Parameter]
+    public IList<TItem>? Items { get; set; }
 
     /// <summary>
     /// Template for displaying each list item.
@@ -32,25 +32,52 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     [Parameter]
     public Func<TItem, object>? KeySelector { get; set; }
 
-    /// <inheritdoc />
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when multiple SortableList components are registered with the same ID during rendering.
-    /// </exception>
+    /// <summary>
+    /// CSS class applied to the root container of the Sortable component.
+    /// </summary>
     [Parameter]
-    public override string Id { get; set; } = Guid.NewGuid().ToString();
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// Inline CSS styles applied to the root container of the Sortable component.
+    /// </summary>
+    [Parameter]
+    public string? Style { get; set; }
+
+    /// <summary>
+    /// Specifies additional custom attributes that will be rendered by the component.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? Attributes { get; set; }
+
+    /// <summary>
+    /// Unique identifier of the component. Must be globally unique across all Sortable instances.
+    /// </summary>
+    /// <remarks>
+    /// If not set explicitly, a GUID will be generated automatically.
+    /// This ID is required for internal coordination between Sortable components.
+    /// Set this manually only if you need to identify the component externally.
+    /// </remarks>
+    [Parameter]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    /// <summary>
+    /// Group name for interaction with other Sortable components.
+    /// </summary>
+    [Parameter]
+    public string Group { get; set; } = Guid.NewGuid().ToString();
 
     /// <summary>
     /// Mode for pulling items from the list.
     /// </summary>
     [Parameter]
-    public PullMode? Pull { get; set; }
+    public SortablePullMode? Pull { get; set; }
 
     /// <summary>
     /// Array of group names from which items can be pulled.
     /// </summary>
     /// <remarks>
-    /// Used only when <see cref="Pull"/> is set to <see cref="PullMode.Groups"/>.
-    /// Ignored in other pull modes.
+    /// Used only when <see cref="Pull"/> is set to <see cref="SortablePullMode.Groups"/>.
     /// </remarks>
     [Parameter]
     public string[]? PullGroups { get; set; }
@@ -59,37 +86,53 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// Factory function used to create a deep copy of an item when items are pulled in clone mode.
     /// </summary>
     /// <remarks>
-    /// Used only when <see cref="Pull"/> is set to <see cref="PullMode.Clone"/>.
-    /// If not provided in clone mode, item cloning will be skipped and null will be added instead.
+    /// Used only when <see cref="Pull"/> is set to <see cref="SortablePullMode.Clone"/>.
     /// </remarks>
     [Parameter]
     public Func<TItem, TItem>? CloneFunction { get; set; }
 
     /// <summary>
-    /// Called when an unhandled exception occurs during object cloning.
-    /// </summary>
-    /// <remarks>
-    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged  in the parent component.
-    /// </remarks>
-    [Parameter]
-    public Action<Exception>? OnCloneException { get; set; }
-
-    /// <summary>
     /// Function used to determine if an item can be pulled from this list to another list.
     /// </summary>
     /// <remarks>
-    /// Used only when <see cref="Pull"/> is set to <see cref="PullMode.Function"/>.
+    /// Used only when <see cref="Pull"/> is set to <see cref="SortablePullMode.Function"/>.
     /// The function receives the item being dragged and the target list info.
     /// Return <c>true</c> to allow pulling, <c>false</c> to deny.
     /// </remarks>
     [Parameter]
-    public Func<SortableTransferContext<TItem>, bool>? PullFunction { get; set; }
+    public Predicate<SortableTransferContext<TItem>>? PullFunction { get; set; }
+
+    /// <summary>
+    /// Mode for adding items to this Sortable component.
+    /// </summary>
+    [Parameter]
+    public SortablePutMode? Put { get; set; }
+
+    /// <summary>
+    /// Array of group names from which items can be added.
+    /// </summary>
+    /// <remarks>
+    /// Used only when <see cref="Put"/> is set to <see cref="SortablePutMode.Groups"/>.
+    /// </remarks>
+    [Parameter]
+    public string[]? PutGroups { get; set; }
+
+    /// <summary>
+    /// Custom function to determine whether an item can be added to this Sortable component.
+    /// </summary>
+    /// <remarks>
+    /// Used only when <see cref="Put"/> is set to <see cref="SortablePutMode.Function"/>.
+    /// The function receives the item being dragged and the target list info as parameters.
+    /// Should return <c>true</c> if the item can be added, <c>false</c> otherwise.
+    /// </remarks>
+    [Parameter]
+    public Predicate<SortableTransferContext<object>>? PutFunction { get; set; }
 
     /// <summary>
     /// Dictionary of converters for transforming items from other SortableLists.
     /// </summary>
     /// <remarks>
-    /// The key is the <c>Id</c> of another <see cref="SortableList{TItem}"/> that provides items,
+    /// The key is the <c>Id</c> of another <see cref="Sortable{TItem}"/> that provides items,
     /// and the value is a function that converts an item from that list to the target <typeparamref name="TItem"/> type.
     /// This is used when items are dragged between lists with different data types.
     /// </remarks>
@@ -97,19 +140,17 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     public Func<SortableTransferContext<object>, TItem?>? ConvertFunction { get; set; }
 
     /// <summary>
-    /// Called when an unhandled exception occurs during converter execution.
-    /// </summary>
-    /// <remarks>
-    /// Uses Action instead of EventCallback to prevent automatic StateHasChanged  in the parent component.
-    /// </remarks>
-    [Parameter]
-    public Action<Exception>? OnConvertException { get; set; }
-
-    /// <summary>
     /// Enables or disables sorting of items within the list.
     /// </summary>
     [Parameter]
     public bool Sort { get; set; } = true;
+
+    /// <summary>
+    /// Disables the Sortable component when set to true.
+    /// When disabled, drag and drop operations are not allowed.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
 
     /// <summary>
     /// Animation duration in milliseconds.
@@ -139,7 +180,7 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// The draggable class will be applied to items that return true.
     /// </remarks>
     [Parameter]
-    public Func<TItem, bool>? DraggableSelector { get; set; }
+    public Predicate<TItem>? DraggableSelector { get; set; }
 
     /// <summary>
     /// CSS class applied to items that can be dragged.
@@ -149,6 +190,12 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     /// </remarks>
     [Parameter]
     public string DraggableClass { get; set; } = "sortable-draggable";
+
+    /// <summary>
+    /// CSS class for the ghost element during dragging.
+    /// </summary>
+    [Parameter]
+    public string GhostClass { get; set; } = "sortable-ghost";
 
     /// <summary>
     /// CSS class for the chosen element.
@@ -288,33 +335,78 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     //[Parameter]
     //public Action<TItem>? OnDeselect { get; set; }
 
+    [Inject] private ISortableRegistry SortableRegistry { get; set; } = default!;
+    [Inject] private IJSRuntime Js { get; set; } = default!;
+
+    private IJSObjectReference? jsModule;
+    private DotNetObjectReference<Sortable<TItem>>? selfReference;
+
     private int draggedItemIndex = -1;
-    private bool suppressNextRemove;
 
-    /// <summary>
-    /// Validates required parameters during component initialization.
-    /// Throws <see cref="ArgumentNullException"/> if any required parameter is null.
-    /// </summary>
-    protected override void OnInitialized()
+    /// <inheritdoc/>
+    protected override sealed void OnInitialized()
     {
-        ArgumentNullException.ThrowIfNull(Items);
-    }
-
-    private protected override string InitMethodName => "initSortableList";
-
-    /// <summary>
-    /// Called by the Blazor framework after the component has rendered.
-    /// </summary>
-    /// <param name="firstRender">True if this is the first time the component is rendered.</param>
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
+        switch (Pull)
         {
-            SortableService.RegisterSortableList(Id, this);
+            case SortablePullMode.Groups:
+                ArgumentNullException.ThrowIfNull(PullGroups);
+                break;
+            case SortablePullMode.Clone:
+                ArgumentNullException.ThrowIfNull(CloneFunction);
+                break;
+            case SortablePullMode.Function:
+                ArgumentNullException.ThrowIfNull(PullFunction);
+                break;
+        }
+
+        switch (Put)
+        {
+            case SortablePutMode.Groups:
+                ArgumentNullException.ThrowIfNull(PutGroups);
+                break;
+            case SortablePutMode.Function:
+                ArgumentNullException.ThrowIfNull(PutFunction);
+                break;
         }
     }
 
-    private protected override Dictionary<string, object> BuildOptions()
+    /// <inheritdoc/>
+    protected override sealed async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            jsModule = await Js.InvokeAsync<IJSObjectReference>("import",
+                "./_content/BlazorSortable/js/blazor-sortable.js");
+            selfReference = DotNetObjectReference.Create(this);
+            await jsModule.InvokeVoidAsync("initSortable", Id, BuildOptions(), selfReference);
+
+            SortableRegistry.Register(Id, this);
+        }
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask DisposeAsync()
+    {
+        if (jsModule is not null)
+        {
+            try
+            {
+                await jsModule.InvokeVoidAsync("destroySortable", Id);
+                await jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore - Blazor Server Circuit Disconnected
+            }
+        }
+
+        // Dispose selfReference after JavaScript module
+        selfReference?.Dispose();
+
+        SortableRegistry.Unregister(Id);
+    }
+
+    private Dictionary<string, object> BuildOptions()
     {
         var group = new Dictionary<string, object>
         {
@@ -379,178 +471,150 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
     {
         return Pull switch
         {
-            PullMode.True => true,
-            PullMode.False => false,
-            PullMode.Groups => PullGroups?.Length > 0 ? PullGroups : null,
-            PullMode.Clone => "clone",
-            PullMode.Function => "function",
+            SortablePullMode.True => true,
+            SortablePullMode.False => false,
+            SortablePullMode.Groups => PullGroups,
+            SortablePullMode.Clone => "clone",
+            SortablePullMode.Function => "function",
             _ => null
         };
     }
 
-    /// <summary>
-    /// Called from JavaScript when the drag operation starts.
-    /// </summary>
-    /// <param name="index">The index of the item being dragged.</param>
-    [JSInvokable]
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    private object? GetPut()
+    {
+        return Put switch
+        {
+            SortablePutMode.True => true,
+            SortablePutMode.False => false,
+            SortablePutMode.Groups => PutGroups,
+            SortablePutMode.Function => "function",
+            _ => null
+        };
+    }
+
+#pragma warning disable CS1591
+
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public void OnStartJs(int index)
     {
         draggedItemIndex = index;
     }
 
-    /// <summary>
-    /// Called from JavaScript when the drag operation ends.
-    /// </summary>
-    [JSInvokable]
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public void OnEndJs()
     {
         draggedItemIndex = -1;
     }
 
-    /// <summary>
-    /// Called from JavaScript to determine if an item can be pulled to the target sortable.
-    /// </summary>
-    /// <param name="toId">The ID of the target sortable.</param>
-    /// <returns><c>true</c> if the item can be pulled; otherwise, <c>false</c>.</returns>
-    [JSInvokable]
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public bool OnPullJs(string toId)
     {
-        var item = Items[draggedItemIndex];
-        var to = SortableService.GetSortableList(toId)!;
+        var item = Items![draggedItemIndex];
+        var to = SortableRegistry[toId]!;
         var ctx = new SortableTransferContext<TItem>(item, this, to);
-
-        return PullFunction?.Invoke(ctx) ?? false;
+        return PullFunction!(ctx);
     }
 
-    /// <summary>
-    /// Event handler for updating item order, called from JavaScript.
-    /// </summary>
-    /// <param name="oldIndex">Item index before moving.</param>
-    /// <param name="newIndex">Item index after moving.</param>
-    [JSInvokable]
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
+    public bool OnPutJs(string fromId)
+    {
+        var from = SortableRegistry[fromId]!;
+        var item = from[from.DraggedItemIndex];
+        var ctx = new SortableTransferContext<object>(item, from, this);
+        return PutFunction!(ctx);
+    }
+
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public void OnUpdateJs(int oldIndex, int newIndex)
     {
-        var itemToMove = Items[oldIndex];
+        var item = Items![oldIndex];
 
         Items.RemoveAt(oldIndex);
-        newIndex = InsertOrAddItem(newIndex, itemToMove); // Sometimes SortableJS provides newIndex one greater than the last valid index
-
+        newIndex = InsertOrAddItem(newIndex, item); // Sometimes SortableJS provides newIndex one greater than the last valid index
         StateHasChanged();
 
-        var args = new SortableEventArgs<TItem>(itemToMove, this, oldIndex, this, newIndex);
-        OnUpdate?.Invoke(args);
+        if (OnUpdate is not null)
+        {
+            var args = new SortableEventArgs<TItem>(item, this, oldIndex, this, newIndex);
+            OnUpdate(args);
+        }
     }
 
-    /// <summary>
-    /// Event handler for adding an item, called from JavaScript.
-    /// </summary>
-    /// <param name="fromId">Source Sortable identifier.</param>
-    /// <param name="oldIndex">Item index in the source Sortable.</param>
-    /// <param name="newIndex">Item index in the target Sortable.</param>
-    /// <param name="isClone">Flag indicating whether the item is a clone.</param>
-    [JSInvokable]
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public void OnAddJs(string fromId, int oldIndex, int newIndex, bool isClone)
     {
-        var from = SortableService.GetSortableList(fromId)!;
-        from.SuppressNextRemove = !isClone;
+        var from = SortableRegistry[fromId]!;
+        var sourceObject = from[oldIndex];
 
-        var sourceObject = from.GetItem(oldIndex);
-        if (sourceObject is null) return;
-
-        TItem? itemToAdd = default;
-
+        TItem? item = default;
         if (ConvertFunction is not null)
         {
-            itemToAdd = TryConvertItem(sourceObject, from);
+            item = ConvertFunction(new SortableTransferContext<object>(sourceObject, from, this));
         }
         else if (sourceObject is TItem sourceItem)
         {
-            itemToAdd = sourceItem;
+            item = sourceItem;
+        }
+        if (item is null)
+            return;
+
+        if (Items is not null)
+        {
+            Items.Insert(newIndex, item);
+            StateHasChanged();
         }
 
-        if (itemToAdd is null) return;
-
-        Items.Insert(newIndex, itemToAdd);
-        from.SuppressNextRemove = false;
-
-        StateHasChanged();
-
-        var args = new SortableEventArgs<TItem>(itemToAdd, from, oldIndex, this, newIndex, isClone);
-        OnAdd?.Invoke(args);
+        if (OnAdd is not null)
+        {
+            var args = new SortableEventArgs<TItem>(item, from, oldIndex, this, newIndex, isClone);
+            OnAdd(args);
+        }
     }
 
-    /// <summary>
-    /// Event handler for removing an item, called from JavaScript.
-    /// </summary>
-    /// <param name="oldIndex">Item index in the source Sortable.</param>
-    /// <param name="toId">Target Sortable identifier.</param>
-    /// <param name="newIndex">Item index in the target Sortable.</param>
-    [JSInvokable]
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public void OnRemoveJs(int oldIndex, string toId, int newIndex)
     {
-        if (suppressNextRemove)
-        {
-            suppressNextRemove = false;
-            return;
-        }
-
-        var itemToRemove = Items[oldIndex];
+        var item = Items![oldIndex];
 
         Items.RemoveAt(oldIndex);
-
         StateHasChanged();
 
-        var to = SortableService.GetSortableList(toId)!;
-        var args = new SortableEventArgs<TItem>(itemToRemove, this, oldIndex, to, newIndex);
-        OnRemove?.Invoke(args);
+        if (OnRemove is not null)
+        {
+            var to = SortableRegistry[toId]!;
+            var args = new SortableEventArgs<TItem>(item, this, oldIndex, to, newIndex);
+            OnRemove(args);
+        }
     }
 
-    ///// <summary>
-    ///// Event handler for selecting an item, called from JavaScript.
-    ///// </summary>
-    ///// <param name="index">Index of the selected item.</param>
-    //[JSInvokable]
-    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //[JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     //public void OnSelectJs(int index)
     //{
-    //    OnSelect?.Invoke(Items[index]);
+    //    OnSelect?.Invoke(Items![index]);
     //}
 
-    ///// <summary>
-    ///// Event handler for deselecting an item, called from JavaScript.
-    ///// </summary>
-    ///// <param name="index">Index of the deselected item.</param>
-    //[JSInvokable]
-    //[EditorBrowsable(EditorBrowsableState.Never)]
+    //[JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     //public void OnDeselectJs(int index)
     //{
-    //    OnDeselect?.Invoke(Items[index]);
+    //    OnDeselect?.Invoke(Items![index]);
     //}
+
+#pragma warning restore CS1591
+
+    object ISortableList.this[int index]
+    {
+        get
+        {
+            var item = Items![index]!;
+            return Pull == SortablePullMode.Clone ? CloneFunction!(item)! : item;
+        }
+    }
 
     int ISortableList.DraggedItemIndex => draggedItemIndex;
 
-    object? ISortableList.GetItem(int index)
-    {
-        var item = Items[index];
-
-        return Pull == PullMode.Clone ? TryCloneItem(item) : item;
-    }
-
-    bool ISortableList.SuppressNextRemove
-    {
-        get => suppressNextRemove;
-        set => suppressNextRemove = value;
-    }
-
     private int InsertOrAddItem(int index, TItem item)
     {
-        if (index >= Items.Count)
+        if (index >= Items!.Count)
         {
             Items.Add(item);
             return Items.Count - 1;
@@ -558,40 +622,5 @@ public partial class SortableList<TItem> : SortableBase, ISortableList
 
         Items.Insert(index, item);
         return index;
-    }
-
-    private TItem? TryCloneItem(TItem item)
-    {
-        if (CloneFunction is null) return default;
-
-        try
-        {
-            return CloneFunction(item);
-        }
-        catch (Exception ex)
-        {
-            OnCloneException?.Invoke(ex);
-            return default;
-        }
-    }
-
-    private TItem? TryConvertItem(object item, ISortable from)
-    {
-        try
-        {
-            var ctx = new SortableTransferContext<object>(item, from, this);
-            return ConvertFunction!(ctx);
-        }
-        catch (Exception ex)
-        {
-            OnConvertException?.Invoke(ex);
-            return default;
-        }
-    }
-
-    /// <inheritdoc />
-    public override void Dispose()
-    {
-        SortableService.UnregisterSortableList(Id);
     }
 }

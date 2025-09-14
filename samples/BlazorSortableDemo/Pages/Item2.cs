@@ -1,4 +1,4 @@
-﻿namespace BlazorSortableDemo.Pages;
+namespace BlazorSortableDemo.Pages;
 
 public class Item2
 {
@@ -6,7 +6,7 @@ public class Item2
 
     public required string Name { get; init; }
 
-    public int Value { get; set; }
-
     public string Type { get; } = nameof(Item2);
+
+    public int Value { get; set; }
 }

@@ -1,12 +1,10 @@
-@inherits SortableBase
-
 @typeparam TItem
 
-<div @attributes="@Attributes"
+<div @attributes="Attributes"
      id="@Id"
      class="@Class"
      style="@Style">
-    @if (ChildContent is not null)
+    @if (Items is not null && ChildContent is not null)
     {
         @foreach (var item in Items)
         {
