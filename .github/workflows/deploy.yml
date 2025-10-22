@@ -6,6 +6,7 @@ on:
       - main  # Run only when pushing to the main branch
     paths:
       - 'samples/BlazorSortableDemo/**'  # Trigger only if files in this project change
+  workflow_dispatch:  # Ability to manually trigger the workflow via the GitHub Actions interface
 
 jobs:
   build-and-deploy:
