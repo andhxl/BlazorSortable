@@ -9,6 +9,8 @@ A Blazor component that wraps the [SortableJS](https://github.com/SortableJS/Sor
 
 ## Installation
 
+### Via Nuget Package Manager
+
 ### Via dotnet CLI
 ```bash
 dotnet add package BlazorSortable
@@ -18,39 +20,73 @@ dotnet add package BlazorSortable
 Add to your .csproj file:
 ```xml
 <ItemGroup>
-  <PackageReference Include="BlazorSortable" Version="4.*" />
+  <PackageReference Include="BlazorSortable" Version="5.*" />
 </ItemGroup>
 ```
 
 ## Setup
 
 1. Add the SortableJS library to:
-    - `wwwroot/index.html` (for Blazor WebAssembly)
-    - `Components/App.razor` (for Blazor Web App)
+    - `wwwroot/index.html` (for Blazor WebAssembly)  
+    - `Components/App.razor` (for Blazor Web App)  
     - `Pages/_Host.cshtml` (for Blazor Server)
 
     Using one of the following methods:
 
-    a) Via CDN:
+    a) **Via CDN:**
     ```html
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     ```
+    > 💡 You can also lock to a specific version:
+    > ```html
+    > <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+    > ```
 
-    b) Locally:
+    b) **Locally:**
     ```html
     <script src="lib/sortable/dist/js/Sortable.min.js"></script>
     ```
+    > 💡 You can optionally include a version parameter to avoid browser caching:
+    > ```html
+    > <script src="lib/sortable/dist/js/Sortable.min.js?v=1.15.6"></script>
+    > ```
 
     For local installation:
     1. Download the latest version of SortableJS from [GitHub](https://github.com/SortableJS/Sortable/releases)
     2. Create the folder structure in `wwwroot`: `lib/sortable/dist/js/`
     3. Place the `Sortable.min.js` file in the created folder
-    4. Ensure the path in the script tag matches the file location
 
 2. (Optional) Add base styles to the same file where you added the script:
 ```html
 <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css" />
-```
+````
+
+> 💡 You can also specify the version manually to prevent browser caching:
+>
+> ```html
+> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.0.0" />
+> ```
+>
+> Or automatically insert the current assembly version (works in `.razor` or `.cshtml` files).
+> For **Blazor WebAssembly**, you can add this to `App.razor`:
+>
+> ```razor
+> <HeadContent>
+>     <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=@(typeof(BlazorSortable.Sortable<>).Assembly.GetName().Version)" />
+> </HeadContent>
+> ```
+>
+> ⚙️ For this to work in **Blazor WebAssembly**, make sure you have the following line in your `Program.cs`:
+>
+> ```csharp
+> builder.RootComponents.Add<HeadOutlet>("head::after");
+> ```
+>
+> For **Blazor Server**, place the following inside `<head>` in `_Host.cshtml`:
+>
+> ```html
+> <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+> ```
 
 3. Add services in `Program.cs`:
 ```csharp
@@ -135,8 +171,6 @@ builder.Services.AddSortable();
 | `SwapThreshold` | `double` | `1` | Threshold for swap detection during dragging (0-1) |
 | `ForceFallback` | `bool` | `true` | Forces fallback mode for dragging |
 | `FallbackClass` | `string` | `"sortable-fallback"` | CSS class for the element in fallback mode |
-| `Swap` | `bool` | `false` | Enables swap mode for dragging |
-| `SwapClass` | `string` | `"sortable-swap-highlight"` | CSS class applied to items during swap highlighting |
 | `Scroll` | `bool` | `true` | Enables scrolling of the container during dragging |
 | `OnUpdate` | `Action<SortableEventArgs<TItem>>?` | `null` | Raised when the order of items is changed |
 | `OnAdd` | `Action<SortableEventArgs<TItem>>?` | `null` | Raised when an item is added to the list |
@@ -163,7 +197,8 @@ builder.Services.AddSortable();
 
 ## Events
 
-All events receive a `SortableEventArgs<TItem>` parameter.
+All events receive a `SortableEventArgs<TItem>` parameter.  
+Functions like `PullFunction`, `PutFunction`, and `ConvertFunction` use a `SortableTransferContext<T>` parameter.
 
 ### SortableEventArgs
 
@@ -197,11 +232,17 @@ The `ISortableInfo` interface provides information about a sortable component.
 | `Id` | `string` | Unique identifier of the component |
 | `Group` | `string` | Group name for interaction with other Sortable components |
 
-### Notes
+## Notes
 
 - **Order of events when dragging between lists:**
   1. `OnAdd` is triggered **first** — during this event, the item is **still present in the source list**.
   2. `OnRemove` is triggered **after**.
 
-- **Events use `Action<T>?` instead of `EventCallback<T>`.**
+- **Events use `Action<T>?` instead of `EventCallback<T>`.**  
   **Reason:** `EventCallback.InvokeAsync` automatically triggers `StateHasChanged` in the parent component, which causes conflicts between the DOM and the data model for this component.
+
+- **Dragging issues on scrolled page:**  
+  If the dragged element appears misaligned when the page is scrolled, set  
+  ```razor
+  ForceFallback="false"
+  ```
