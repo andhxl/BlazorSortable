@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "BlazorSortableDemo",
   "resources": {
-    "hash": "sha256-bnlbUOYqHivkrqOzLaNrT7x0ylRyFZ3MgVU5reydjp8=",
+    "hash": "sha256-UQwrcw2ZrymPHrTp4Km5aMjjwfztg28caKox82rSF+w=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Components.tcx7biyjlb.wasm": "Microsoft.AspNetCore.Components.wasm",
       "Microsoft.AspNetCore.Components.Forms.ldwpbvn8hd.wasm": "Microsoft.AspNetCore.Components.Forms.wasm",
@@ -61,8 +61,8 @@
       "System.Xml.XDocument.kpklgpeww4.wasm": "System.Xml.XDocument.wasm",
       "System.8rv0tdtrxz.wasm": "System.wasm",
       "System.Private.CoreLib.h5b7kwbpli.wasm": "System.Private.CoreLib.wasm",
-      "BlazorSortable.wwjz462b9j.wasm": "BlazorSortable.wasm",
-      "BlazorSortableDemo.6grcgxtuf4.wasm": "BlazorSortableDemo.wasm",
+      "BlazorSortable.n126kjb7kx.wasm": "BlazorSortable.wasm",
+      "BlazorSortableDemo.dh0jbcphtn.wasm": "BlazorSortableDemo.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.l4ptthxatg.js": "dotnet.native.js",
       "dotnet.native.d2w7colv7e.wasm": "dotnet.native.wasm",
@@ -146,8 +146,8 @@
       "System.Xml.Linq.fnt4rzi185.wasm": "sha256-5claBNmyy8L12DFLS17Fh4SBiTjwhYts3ds7g8dX8Gc=",
       "System.Xml.XDocument.kpklgpeww4.wasm": "sha256-GFDeJPMpvuxG84bJZz3l/h9Zp3tHgIQlwd9lBwkQq9w=",
       "System.8rv0tdtrxz.wasm": "sha256-xMF0eauQ5DkSzUozHLFFMQnL6DSJO09nJLtgag+Dzbw=",
-      "BlazorSortable.wwjz462b9j.wasm": "sha256-cHQgwwjJJazRmc9Jn9/ER75ovGYNnf3F4rMcbYJQ6HM=",
-      "BlazorSortableDemo.6grcgxtuf4.wasm": "sha256-9pkh+zgkJQsgrFUtRe0/M/dPrgEESH97idfdbYghQ6o="
+      "BlazorSortable.n126kjb7kx.wasm": "sha256-23/QyH10upkDIkZmVm3pbIPxCdlxM0DV+AmVdyQpD2U=",
+      "BlazorSortableDemo.dh0jbcphtn.wasm": "sha256-zwvVrpc3bhu6VinVaNmRmUoCrlnAttVwINIr19ZI6UQ="
     }
   },
   "cacheBootResources": true,
