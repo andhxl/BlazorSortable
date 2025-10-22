@@ -1,4 +1,8 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+<HeadContent>
+    <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=@(typeof(Sortable<>).Assembly.GetName().Version)" />
+</HeadContent>
+
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />

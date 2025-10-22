@@ -1,0 +1,28 @@
+<ExampleComponent Title="Handle" CodeContent="@codeContent">
+    <Sortable TItem="ClassA"
+              Items="Utils.CreateItemList<ClassA>(5)"
+              Class="items-column"
+              Handle=".handle">
+        <RadzenCard class="item">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                <div class="handle" />
+                @context
+            </RadzenStack>
+        </RadzenCard>
+    </Sortable>
+</ExampleComponent>
+
+@code {
+    private string codeContent = @"
+<Sortable TItem=""ClassA""
+          Items=""Utils.CreateItemList<ClassA>(5)""
+          Class=""items-column""
+          Handle="".handle"">
+    <RadzenCard class=""item"">
+        <RadzenStack Orientation=""Orientation.Horizontal"" AlignItems=""AlignItems.Center"">
+            <div class=""handle"" />
+            @context
+        </RadzenStack>
+    </RadzenCard>
+</Sortable>";
+}

@@ -1,0 +1,20 @@
+<ExampleComponent Title="Simple list" CodeContent="@codeContent">
+    <Sortable TItem="ClassA"
+              Items="Utils.CreateItemList<ClassA>(5)"
+              Class="items-column">
+        <RadzenCard class="item">
+            @context
+        </RadzenCard>
+    </Sortable>
+</ExampleComponent>
+
+@code {
+    private string codeContent = @"
+<Sortable TItem=""ClassA""
+          Items=""Utils.CreateItemList<ClassA>(5)""
+          Class=""items-column"">
+    <RadzenCard class=""item"">
+        @context
+    </RadzenCard>
+</Sortable>";
+}
