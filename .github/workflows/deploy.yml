@@ -1,0 +1,56 @@
+name: Deploy BlazorSortableDemo to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Run only when pushing to the main branch
+    paths:
+      - 'samples/BlazorSortableDemo/**'  # Trigger only if files in this project change
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup .NET 9 SDK
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # 3. Publish the Blazor WebAssembly app
+      #    This builds the project and outputs static files to 'publish/wwwroot'
+      - name: Publish Blazor WebAssembly app
+        run: dotnet publish ./samples/BlazorSortableDemo/BlazorSortableDemo.csproj -c Release -o publish
+
+      # 4. Update the <base href> in index.html for GitHub Pages
+      #    Ensures that the app works under /repository-name/ instead of /
+      - name: Update base href for GitHub Pages
+        run: |
+          REPO_NAME=$(basename $GITHUB_REPOSITORY)
+          INDEX=publish/wwwroot/index.html
+          if [[ "${GITHUB_REPOSITORY}" != *".github.io" ]]; then
+            sed -i "s#<base href=\"/\" />#<base href=\"/${REPO_NAME}/\" />#" "$INDEX"
+          fi
+
+      # 5. Add .nojekyll to disable Jekyll processing
+      #    Required so that folders like /_framework and /_content are served correctly
+      - name: Add .nojekyll file
+        run: touch publish/wwwroot/.nojekyll
+
+      # 6. Copy index.html to 404.html
+      #    Allows client-side routing (SPA) to work properly on GitHub Pages
+      - name: Add 404.html for SPA routing
+        run: cp publish/wwwroot/index.html publish/wwwroot/404.html
+
+      # 7. Deploy the built app to the gh-pages branch
+      #    The JamesIves action automatically handles creating/updating the branch
+      - name: Deploy to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: publish/wwwroot
