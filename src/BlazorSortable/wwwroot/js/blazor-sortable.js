@@ -13,7 +13,7 @@ export function initSortable(id, options, component) {
         };
     }
 
-    // TODO: MultiDrag
+    // TODO: MultiDrag, Swap
     el._sortable = new Sortable(el, {
         ...options,
         onStart: (evt) => {
@@ -25,6 +25,9 @@ export function initSortable(id, options, component) {
         onUpdate: (evt) => {
             //const oldIndexes = extractIndexes(evt.oldIndicies);
             //const newIndexes = extractIndexes(evt.newIndicies);
+
+            //if (evt.swapItem) {
+            //}
 
             // Revert the DOM to match the .NET state
             evt.item.remove();

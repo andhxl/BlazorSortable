@@ -2,10 +2,11 @@ using BlazorSortable.Internal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.ComponentModel;
+using System.Reflection;
 
 namespace BlazorSortable;
 
-// TODO: MultiDrag
+// TODO: MultiDrag, Swap
 
 /// <summary>
 /// Component for creating sortable with drag and drop functionality.
@@ -262,24 +263,24 @@ public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
     //[Parameter]
     //public bool AvoidImplicitDeselect { get; set; }
 
-    /// <summary>
-    /// Enables swap mode for dragging.
-    /// </summary>
-    /// <remarks>
-    /// When enabled, dragging an item over another item will swap their positions
-    /// instead of inserting the dragged item at the new position.
-    /// </remarks>
-    [Parameter]
-    public bool Swap { get; set; }
+    ///// <summary>
+    ///// Enables swap mode for dragging.
+    ///// </summary>
+    ///// <remarks>
+    ///// When enabled, dragging an item over another item will swap their positions
+    ///// instead of inserting the dragged item at the new position.
+    ///// </remarks>
+    //[Parameter]
+    //public bool Swap { get; set; }
 
-    /// <summary>
-    /// CSS class applied to items during swap highlighting.
-    /// </summary>
-    /// <remarks>
-    /// Applied to items that would be swapped when <see cref="Swap"/> is enabled.
-    /// </remarks>
-    [Parameter]
-    public string SwapClass { get; set; } = "sortable-swap-highlight";
+    ///// <summary>
+    ///// CSS class applied to items during swap highlighting.
+    ///// </summary>
+    ///// <remarks>
+    ///// Applied to items that would be swapped when <see cref="Swap"/> is enabled.
+    ///// </remarks>
+    //[Parameter]
+    //public string SwapClass { get; set; } = "sortable-swap-highlight";
 
     /// <summary>
     /// Enables scrolling of the container during dragging.
@@ -376,7 +377,7 @@ public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
         if (firstRender)
         {
             jsModule = await Js.InvokeAsync<IJSObjectReference>("import",
-                "./_content/BlazorSortable/js/blazor-sortable.js");
+                $"./_content/BlazorSortable/js/blazor-sortable.js?v={Assembly.GetExecutingAssembly().GetName().Version}");
             selfReference = DotNetObjectReference.Create(this);
             await jsModule.InvokeVoidAsync("initSortable", Id, BuildOptions(), selfReference);
 
@@ -454,11 +455,11 @@ public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
         //        options["multiDragKey"] = MultiDragKey;
         //}
 
-        if (Swap)
-        {
-            options["swap"] = true;
-            options["swapClass"] = SwapClass;
-        }
+        //if (Swap)
+        //{
+        //    options["swap"] = true;
+        //    options["swapClass"] = SwapClass;
+        //}
 
         options["scroll"] = Scroll;
 
