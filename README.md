@@ -91,7 +91,9 @@ builder.Services.AddSortable();
 ```
 
 ```razor
-<Sortable TItem="object" Class="my-sortable-drop-zone" />
+<Sortable TItem="object"
+          Class="my-sortable-drop-zone"
+          Group="group1" />
 ```
 
 ## Component Parameters
@@ -102,7 +104,7 @@ builder.Services.AddSortable();
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `TItem` | — | — | The type of items in the sortable list |
+| `TItem` | — | — | The type of items in the list |
 | `Items` | `IList<TItem>?` | `null` | List of items to display and sort |
 | `ChildContent` | `RenderFragment<TItem>?` | `null` | Template for displaying each list item. Can be a component, HTML elements, or any Razor markup |
 | `KeySelector` | `Func<TItem, object>?` | `null` | Function for generating the key used in `@key`. If not set, the item itself is used |
@@ -161,7 +163,7 @@ builder.Services.AddSortable();
 
 ## Events
 
-All events receive a `SortableEventArgs<TItem>` parameter containing information about the operation.
+All events receive a `SortableEventArgs<TItem>` parameter.
 
 ### SortableEventArgs
 
@@ -197,7 +199,9 @@ The `ISortableInfo` interface provides information about a sortable component.
 
 ### Notes
 
-- **Order of events** when dragging between lists:
-  1. `OnAdd` is triggered **first**.
+- **Order of events when dragging between lists:**
+  1. `OnAdd` is triggered **first** — during this event, the item is **still present in the source list**.
   2. `OnRemove` is triggered **after**.
-- During `OnAdd`, the item is **still present in the source list**.
+
+- **Events use `Action<T>?` instead of `EventCallback<T>`.**
+  **Reason:** `EventCallback.InvokeAsync` automatically triggers `StateHasChanged` in the parent component, which causes conflicts between the DOM and the data model for this component.
