@@ -1,7 +1,11 @@
-<ExampleComponent Title="Simple list" CodeContent="@codeContent">
+<ExampleComponent Id="@Id"
+                  Title="Simple list"
+                  CodeContent="@codeContent">
     <Sortable TItem="ClassA"
               Items="Utils.CreateItemList<ClassA>(5)"
-              Class="items-column">
+              Class="items-column"
+              Delay="150"
+              DelayOnTouchOnly="true">
         <RadzenCard class="item">
             @context
         </RadzenCard>
@@ -9,10 +13,15 @@
 </ExampleComponent>
 
 @code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; }
+
     private string codeContent = @"
 <Sortable TItem=""ClassA""
           Items=""Utils.CreateItemList<ClassA>(5)""
-          Class=""items-column"">
+          Class=""items-column""
+          Delay=""150""
+          DelayOnTouchOnly=""true"">
     <RadzenCard class=""item"">
         @context
     </RadzenCard>

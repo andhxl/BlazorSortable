@@ -1,4 +1,6 @@
-<ExampleComponent Title="Drop zone" CodeContent="@codeContent">
+<ExampleComponent Id="@Id"
+                  Title="Drop zone"
+                  CodeContent="@codeContent">
     <RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal">
             <Sortable TItem="ClassA"
@@ -29,6 +31,9 @@
 </ExampleComponent>
 
 @code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; }
+
     private string codeContent = @"
 <RadzenStack>
     <RadzenStack Orientation=""Orientation.Horizontal"">

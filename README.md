@@ -37,16 +37,12 @@ Add to your .csproj file:
     ```html
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     ```
-    > 💡 You can also lock to a specific version:
-    > ```html
-    > <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
-    > ```
 
     b) **Locally:**
     ```html
     <script src="lib/sortable/dist/js/Sortable.min.js"></script>
     ```
-    > 💡 You can optionally include a version parameter to avoid browser caching:
+    > You can optionally include a version parameter to avoid browser caching:
     > ```html
     > <script src="lib/sortable/dist/js/Sortable.min.js?v=1.15.6"></script>
     > ```
@@ -60,33 +56,28 @@ Add to your .csproj file:
 ```html
 <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css" />
 ````
-
-> 💡 You can also specify the version manually to prevent browser caching:
->
+> You can also specify the version manually to prevent browser caching:
 > ```html
-> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.0.0" />
+> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.1.0" />
 > ```
 >
 > Or automatically insert the current assembly version (works in `.razor` or `.cshtml` files).
 > For **Blazor WebAssembly**, you can add this to `App.razor`:
->
 > ```razor
 > <HeadContent>
 >     <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=@(typeof(BlazorSortable.Sortable<>).Assembly.GetName().Version)" />
 > </HeadContent>
 > ```
 >
-> ⚙️ For this to work in **Blazor WebAssembly**, make sure you have the following line in your `Program.cs`:
->
-> ```csharp
-> builder.RootComponents.Add<HeadOutlet>("head::after");
-> ```
->
-> For **Blazor Server**, place the following inside `<head>` in `_Host.cshtml`:
->
-> ```html
-> <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
-> ```
+>> For this to work in **Blazor WebAssembly**, make sure you have the following line in your `Program.cs`:
+>> ```csharp
+>> builder.RootComponents.Add<HeadOutlet>("head::after");
+>> ```
+>>
+>> For **Blazor Server**, place the following inside `<head>` in `_Host.cshtml`:
+>> ```html
+>> <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+>> ```
 
 3. Add services in `Program.cs`:
 ```csharp
@@ -136,7 +127,7 @@ builder.Services.AddSortable();
 
 ### Sortable
 
-> **Note:** MultiDrag plugin support will be added in future releases.
+> **Note:** Support for MultiDrag and Swap plugins will be added in future releases.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -156,21 +147,28 @@ builder.Services.AddSortable();
 | `PullFunction` | `Predicate<SortableTransferContext<TItem>>?` | `null` | **Required when `Pull="SortablePullMode.Function"`.** Function to determine if an item can be pulled to the target Sortable component |
 | `Put` | `SortablePutMode?` | `null` | Mode for adding items to the list |
 | `PutGroups` | `string[]?` | `null` | **Required when `Put="SortablePutMode.Groups"`.** Specifies the groups from which items are allowed to be added |
-| `PutFunction` | `Predicate<SortableTransferContext<object>>?` | `null` | **Required when `Put="SortablePutMode.Function"`.** Function to determine if an item can be put into this list. This function is invoked synchronously from JS using `invokeMethod` |
+| `PutFunction` | `Predicate<SortableTransferContext<object>>?` | `null` | **Required when `Put="SortablePutMode.Function"`.** Function to determine if an item can be put into this list |
 | `ConvertFunction` | `Func<SortableTransferContext<object>, TItem?>?` | `null` | Function to convert items from other Sortable component to the target type |
 | `Sort` | `bool` | `true` | Enables or disables sorting of items within the list |
+| `Delay` | `int` | `0` | Time in milliseconds to define when the sorting should start. Unfortunately, due to browser restrictions, delaying is not possible on IE or Edge with native drag and drop |
+| `DelayOnTouchOnly` | `bool` | `false` | Whether or not the delay should be applied only if the user is using touch (eg. on a mobile device). No delay will be applied in any other case |
+| `TouchStartThreshold` | `int` | `0` | This option sets the minimum pointer movement that must occur before the delayed sorting is cancelled. Values between `3` to `5` are good |
 | `Disabled` | `bool` | `false` | Disables the Sortable component when set to true |
 | `Animation` | `int` | `150` | Animation duration in milliseconds |
-| `Handle` | `string?` | `null` | CSS selector for elements that can be dragged (e.g. ".my-handle") |
-| `Filter` | `string?` | `null` | CSS selector for elements that cannot be dragged (e.g. ".ignore-elements") |
+| `Handle` | `string?` | `null` | CSS selector for elements that can be dragged (e.g. `.my-handle`) |
+| `Filter` | `string?` | `null` | CSS selector for elements that cannot be dragged (e.g. `.ignore-elements`) |
 | `DraggableSelector` | `Predicate<TItem>?` | `null` | Function to determine if an item can be dragged |
 | `DraggableClass` | `string` | `"sortable-draggable"` | CSS class applied to items that can be dragged |
 | `GhostClass` | `string` | `"sortable-ghost"` | CSS class for the placeholder during drag |
 | `ChosenClass` | `string` | `"sortable-chosen"` | CSS class for the chosen element |
 | `DragClass` | `string` | `"sortable-drag"` | CSS class for the dragged element |
-| `SwapThreshold` | `double` | `1` | Threshold for swap detection during dragging (0-1) |
-| `ForceFallback` | `bool` | `true` | Forces fallback mode for dragging |
+| `SwapThreshold` | `double` | `1` | Percentage of the target that the swap zone will take up, as a float between `0` and `1` |
+| `InvertSwap` | `bool` | `false` | Set to true to set the swap zone to the sides of the target, for the effect of sorting "in between" items |
+| `InvertedSwapThreshold` | `double` | `1` | Percentage of the target that the inverted swap zone will take up, as a float between `0` and `1` |
+| `ForceFallback` | `bool` | `true` | If set to true, the Fallback for non HTML5 Browser will be used, even if we are using an HTML5 Browser |
 | `FallbackClass` | `string` | `"sortable-fallback"` | CSS class for the element in fallback mode |
+| `FallbackOnBody` | `bool` | `true` | Appends the cloned DOM Element into the Document's Body |
+| `FallbackTolerance` | `int` | `0` | Emulates the native drag threshold. Specify in pixels how far the mouse should move before it's considered as a drag. `3` to `5` are probably good values |
 | `Scroll` | `bool` | `true` | Enables scrolling of the container during dragging |
 | `OnUpdate` | `Action<SortableEventArgs<TItem>>?` | `null` | Raised when the order of items is changed |
 | `OnAdd` | `Action<SortableEventArgs<TItem>>?` | `null` | Raised when an item is added to the list |
@@ -198,7 +196,7 @@ builder.Services.AddSortable();
 ## Events
 
 All events receive a `SortableEventArgs<TItem>` parameter.  
-Functions like `PullFunction`, `PutFunction`, and `ConvertFunction` use a `SortableTransferContext<T>` parameter.
+Functions like `PullFunction`, `PutFunction`, and `ConvertFunction` use a `SortableTransferContext<TItem>` parameter.
 
 ### SortableEventArgs
 

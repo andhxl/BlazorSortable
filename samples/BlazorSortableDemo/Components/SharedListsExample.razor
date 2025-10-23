@@ -1,4 +1,6 @@
-<ExampleComponent Title="Shared lists" CodeContent="@codeContent">
+<ExampleComponent Id="@Id"
+                  Title="Shared lists"
+                  CodeContent="@codeContent">
     <RadzenStack Orientation="Orientation.Horizontal">
         <Sortable TItem="ClassA"
                   Items="Utils.CreateItemList<ClassA>(5)"
@@ -30,6 +32,9 @@
 </ExampleComponent>
 
 @code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; }
+
     private string codeContent = @"
 <RadzenStack Orientation=""Orientation.Horizontal"">
     <Sortable TItem=""ClassA""

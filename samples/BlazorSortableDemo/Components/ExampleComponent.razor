@@ -1,4 +1,4 @@
-<RadzenCard>
+<RadzenCard id="@Id">
     <RadzenStack>
         <RadzenText TextStyle="TextStyle.DisplayH5">
             <strong>@Title</strong>
@@ -17,6 +17,9 @@
 </RadzenCard>
 
 @code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; }
+
     [Parameter, EditorRequired]
     public string Title { get; set; }
 

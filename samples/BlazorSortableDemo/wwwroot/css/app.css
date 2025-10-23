@@ -83,6 +83,7 @@ html, body {
 .item {
     outline: 1px solid #808080;
     user-select: none;
+    white-space: nowrap;
 }
 
 pre {

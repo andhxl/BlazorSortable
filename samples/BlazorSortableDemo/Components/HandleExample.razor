@@ -1,4 +1,6 @@
-<ExampleComponent Title="Handle" CodeContent="@codeContent">
+<ExampleComponent Id="@Id"
+                  Title="Handle"
+                  CodeContent="@codeContent">
     <Sortable TItem="ClassA"
               Items="Utils.CreateItemList<ClassA>(5)"
               Class="items-column"
@@ -13,6 +15,9 @@
 </ExampleComponent>
 
 @code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; }
+
     private string codeContent = @"
 <Sortable TItem=""ClassA""
           Items=""Utils.CreateItemList<ClassA>(5)""

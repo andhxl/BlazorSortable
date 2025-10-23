@@ -6,14 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild Condition="$(Configuration) == 'Release'">true</GeneratePackageOnBuild>
-    <Version>5.0.0</Version>
+    <Version>5.1.0</Version>
     <Authors>andhxl</Authors>
     <Description>A Blazor component that wraps the SortableJS library to provide interactive, drag-and-drop list reordering functionality.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>blazor;components;ui;sortable;sortablejs;drag-and-drop;drag-drop;dragndrop;dragdrop;reorder</PackageTags>
-    <RepositoryUrl>https://github.com/andhxl/BlazorSortable</RepositoryUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://andhxl.github.io/BlazorSortable/</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/andhxl/BlazorSortable</RepositoryUrl>
+    <PackageTags>blazor;components;ui;sortable;sortablejs;drag-and-drop;drag-drop;dragndrop;dragdrop;reorder</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,8 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
     <None Include="..\..\icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
 </Project>

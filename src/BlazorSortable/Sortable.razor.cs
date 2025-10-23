@@ -147,6 +147,26 @@ public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
     public bool Sort { get; set; } = true;
 
     /// <summary>
+    /// Time in milliseconds to define when the sorting should start. Unfortunately, due to browser restrictions, delaying is not possible on IE or Edge with native drag and drop.
+    /// </summary>
+    [Parameter]
+    public int Delay { get; set; }
+
+    /// <summary>
+    /// Whether or not the delay should be applied only if the user is using touch (eg. on a mobile device). No delay will be applied in any other case.
+    /// </summary>
+    [Parameter]
+    public bool DelayOnTouchOnly { get; set; }
+
+    /// <summary>
+    /// When the <see cref="Delay"/> option is set, some phones with very sensitive touch displays like the Samsung Galaxy S8 will fire unwanted touchmove events even when your finger is not moving, resulting in the sort not triggering.
+    /// This option sets the minimum pointer movement that must occur before the delayed sorting is cancelled.
+    /// Values between 3 to 5 are good.
+    /// </summary>
+    [Parameter]
+    public int TouchStartThreshold { get; set; }
+
+    /// <summary>
     /// Disables the Sortable component when set to true.
     /// When disabled, drag and drop operations are not allowed.
     /// </summary>
@@ -211,17 +231,27 @@ public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
     public string DragClass { get; set; } = "sortable-drag";
 
     /// <summary>
-    /// Threshold for swap detection during dragging.
+    /// Percentage of the target that the swap zone will take up, as a float between 0 and 1.
     /// </summary>
-    /// <remarks>
-    /// Determines how much overlap is required before items are swapped.
-    /// Value between 0 and 1.
-    /// </remarks>
     [Parameter]
     public double SwapThreshold { get; set; } = 1;
 
     /// <summary>
-    /// Forces the use of fallback mode for dragging.
+    /// Set to true to set the swap zone to the sides of the target, for the effect of sorting "in between" items.
+    /// </summary>
+    [Parameter]
+    public bool InvertSwap { get; set; }
+
+    /// <summary>
+    /// Percentage of the target that the inverted swap zone will take up, as a float between 0 and 1.
+    /// </summary>
+    [Parameter]
+    public double InvertedSwapThreshold { get; set; } = 1;
+
+    /// <summary>
+    /// If set to true, the Fallback for non HTML5 Browser will be used, even if we are using an HTML5 Browser.
+    /// This gives us the possibility to test the behaviour for older Browsers even in newer Browser, or make the Drag 'n Drop feel more consistent between Desktop, Mobile and old Browsers.
+    /// On top of that, the Fallback always generates a copy of that DOM Element and appends the class fallbackClass defined in the options. This behaviour controls the look of this 'dragged' Element.
     /// </summary>
     [Parameter]
     public bool ForceFallback { get; set; } = true;
@@ -231,6 +261,21 @@ public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
     /// </summary>
     [Parameter]
     public string FallbackClass { get; set; } = "sortable-fallback";
+
+    /// <summary>
+    /// Appends the cloned DOM Element into the Document's Body.
+    /// </summary>
+    [Parameter]
+    public bool FallbackOnBody { get; set; } = true;
+
+    /// <summary>
+    /// Emulates the native drag threshold. Specify in pixels how far the mouse should move before it's considered as a drag. Useful if the items are also clickable like in a list of links.
+    /// When the user clicks inside a sortable element, it's not uncommon for your hand to move a little between the time you press and the time you release.
+    /// Dragging only starts if you move the pointer past a certain tolerance, so that you don't accidentally start dragging every time you click.
+    /// 3 to 5 are probably good values.
+    /// </summary>
+    [Parameter]
+    public int FallbackTolerance { get; set; }
 
     ///// <summary>
     ///// Enables multi-drag functionality.
@@ -426,14 +471,21 @@ public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
         {
             ["group"] = group,
             ["sort"] = Sort,
+            ["delay"] = Delay,
+            ["delayOnTouchOnly"] = DelayOnTouchOnly,
+            ["touchStartThreshold"] = TouchStartThreshold,
             ["disabled"] = Disabled,
             ["animation"] = Animation,
             ["ghostClass"] = GhostClass,
             ["chosenClass"] = ChosenClass,
             ["dragClass"] = DragClass,
             ["swapThreshold"] = SwapThreshold,
+            ["invertSwap"] = InvertSwap,
+            ["invertedSwapThreshold"] = InvertedSwapThreshold,
             ["forceFallback"] = ForceFallback,
             ["fallbackClass"] = FallbackClass,
+            ["fallbackOnBody"] = FallbackOnBody,
+            ["fallbackTolerance"] = FallbackTolerance
         };
 
         if (!string.IsNullOrWhiteSpace(Handle))
