@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild Condition="$(Configuration) == 'Release'">true</GeneratePackageOnBuild>
-    <Version>5.1.1</Version>
+    <Version>5.1.2</Version>
     <Authors>andhxl</Authors>
     <Description>A Blazor component that wraps the SortableJS library to provide interactive, drag-and-drop list reordering functionality.</Description>
     <PackageProjectUrl>https://andhxl.github.io/BlazorSortable/</PackageProjectUrl>

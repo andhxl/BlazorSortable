@@ -11,7 +11,7 @@ A Blazor component that wraps the [SortableJS](https://github.com/SortableJS/Sor
 
 ### Via Nuget Package Manager
 
-### Via dotnet CLI
+### Via .NET CLI
 ```bash
 dotnet add package BlazorSortable
 ```
@@ -55,29 +55,20 @@ Add to your .csproj file:
 2. (Optional) Add base styles to the same file where you added the script:
 ```html
 <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css" />
-````
+```
 > You can also specify the version manually to prevent browser caching:
 > ```html
-> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.1.1" />
+> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.1.2" />
 > ```
->
 > Or automatically insert the current assembly version (works in `.razor` or `.cshtml` files).
-> For **Blazor WebAssembly**, you can add this to `App.razor`:
+> Add this code within the `<head>` element, or for **Blazor WebAssembly**, place it inside the `<HeadContent>` section of `App.razor`:
 > ```razor
-> <HeadContent>
->     <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=@(typeof(BlazorSortable.Sortable<>).Assembly.GetName().Version)" />
-> </HeadContent>
+> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=@(typeof(BlazorSortable.Sortable<>).Assembly.GetName().Version)" />
 > ```
->
->> For this to work in **Blazor WebAssembly**, make sure you have the following line in your `Program.cs`:
->> ```csharp
->> builder.RootComponents.Add<HeadOutlet>("head::after");
->> ```
->>
->> For **Blazor Server**, place the following inside `<head>` in `_Host.cshtml`:
->> ```html
->> <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
->> ```
+> > For this to work in **Blazor WebAssembly**, make sure you have the following line in your `Program.cs`:
+> > ```csharp
+> > builder.RootComponents.Add<HeadOutlet>("head::after");
+> > ```
 
 3. Add services in `Program.cs`:
 ```csharp
