@@ -58,7 +58,7 @@ Add to your .csproj file:
 ````
 > You can also specify the version manually to prevent browser caching:
 > ```html
-> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.1.0" />
+> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.1.1" />
 > ```
 >
 > Or automatically insert the current assembly version (works in `.razor` or `.cshtml` files).
@@ -167,7 +167,7 @@ builder.Services.AddSortable();
 | `InvertedSwapThreshold` | `double` | `1` | Percentage of the target that the inverted swap zone will take up, as a float between `0` and `1` |
 | `ForceFallback` | `bool` | `true` | If set to true, the Fallback for non HTML5 Browser will be used, even if we are using an HTML5 Browser |
 | `FallbackClass` | `string` | `"sortable-fallback"` | CSS class for the element in fallback mode |
-| `FallbackOnBody` | `bool` | `true` | Appends the cloned DOM Element into the Document's Body |
+| `FallbackOnBody` | `bool` | `false` | Appends the cloned DOM Element into the Document's Body |
 | `FallbackTolerance` | `int` | `0` | Emulates the native drag threshold. Specify in pixels how far the mouse should move before it's considered as a drag. `3` to `5` are probably good values |
 | `Scroll` | `bool` | `true` | Enables scrolling of the container during dragging |
 | `OnUpdate` | `Action<SortableEventArgs<TItem>>?` | `null` | Raised when the order of items is changed |
@@ -240,7 +240,11 @@ The `ISortableInfo` interface provides information about a sortable component.
   **Reason:** `EventCallback.InvokeAsync` automatically triggers `StateHasChanged` in the parent component, which causes conflicts between the DOM and the data model for this component.
 
 - **Dragging issues on scrolled page:**  
-  If the dragged element appears misaligned when the page is scrolled, set  
+  If the dragged element appears misaligned when the page is scrolled, set
   ```razor
   ForceFallback="false"
+  ```
+  **or**
+  ```razor
+  FallbackOnBody="true"
   ```

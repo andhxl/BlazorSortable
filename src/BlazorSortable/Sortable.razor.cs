@@ -12,7 +12,7 @@ namespace BlazorSortable;
 /// Component for creating sortable with drag and drop functionality.
 /// </summary>
 /// <typeparam name="TItem">Type of items in the list.</typeparam>
-public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
+public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
 {
     /// <summary>
     /// List of items to display and sort.
@@ -266,7 +266,7 @@ public partial class Sortable<TItem> : IAsyncDisposable, ISortableList
     /// Appends the cloned DOM Element into the Document's Body.
     /// </summary>
     [Parameter]
-    public bool FallbackOnBody { get; set; } = true;
+    public bool FallbackOnBody { get; set; }
 
     /// <summary>
     /// Emulates the native drag threshold. Specify in pixels how far the mouse should move before it's considered as a drag. Useful if the items are also clickable like in a list of links.
