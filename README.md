@@ -58,7 +58,7 @@ Add to your .csproj file:
 ```
 > You can also specify the version manually to prevent browser caching:
 > ```html
-> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.1.2" />
+> <link rel="stylesheet" href="_content/BlazorSortable/css/blazor-sortable.css?v=5.1.3" />
 > ```
 > Or automatically insert the current assembly version (works in `.razor` or `.cshtml` files).
 > Add this code within the `<head>` element, or for **Blazor WebAssembly**, place it inside the `<HeadContent>` section of `App.razor`:
@@ -229,6 +229,9 @@ The `ISortableInfo` interface provides information about a sortable component.
 
 - **Events use `Action<T>?` instead of `EventCallback<T>`.**  
   **Reason:** `EventCallback.InvokeAsync` automatically triggers `StateHasChanged` in the parent component, which causes conflicts between the DOM and the data model for this component.
+
+- **Type mismatch / failed conversion:**  
+  If item types don’t match or the `ConvertFunction` returns `null`, the item is **not added** to the target list and is **remains in its original position**.
 
 - **Dragging issues on scrolled page:**  
   If the dragged element appears misaligned when the page is scrolled, set
