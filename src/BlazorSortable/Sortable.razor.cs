@@ -2,7 +2,6 @@ using BlazorSortable.Internal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.ComponentModel;
-using System.Reflection;
 
 namespace BlazorSortable;
 
@@ -388,6 +387,7 @@ public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
     private DotNetObjectReference<Sortable<TItem>>? selfReference;
 
     private int draggedItemIndex = -1;
+    private bool suppressNextRemove;
 
     /// <inheritdoc/>
     protected override sealed void OnInitialized()
@@ -422,7 +422,7 @@ public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
         if (firstRender)
         {
             jsModule = await Js.InvokeAsync<IJSObjectReference>("import",
-                $"./_content/BlazorSortable/js/blazor-sortable.js?v={Assembly.GetExecutingAssembly().GetName().Version}");
+                $"./_content/BlazorSortable/js/blazor-sortable.js{SortableAssemblyInfo.VersionQuery}");
             selfReference = DotNetObjectReference.Create(this);
             await jsModule.InvokeVoidAsync("initSortable", Id, BuildOptions(), selfReference);
 
@@ -597,6 +597,8 @@ public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
     public void OnAddJs(string fromId, int oldIndex, int newIndex, bool isClone)
     {
         var from = SortableRegistry[fromId]!;
+        from.SuppressNextRemove = !isClone;
+
         var sourceObject = from[oldIndex];
 
         TItem? item = default;
@@ -610,6 +612,8 @@ public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
         }
         if (item is null)
             return;
+
+        from.SuppressNextRemove = false;
 
         if (Items is not null)
         {
@@ -627,6 +631,12 @@ public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
     [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public void OnRemoveJs(int oldIndex, string toId, int newIndex)
     {
+        if (suppressNextRemove)
+        {
+            suppressNextRemove = false;
+            return;
+        }
+
         var item = Items![oldIndex];
 
         Items.RemoveAt(oldIndex);
@@ -664,6 +674,12 @@ public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
     }
 
     int ISortableList.DraggedItemIndex => draggedItemIndex;
+
+    bool ISortableList.SuppressNextRemove
+    {
+        get => suppressNextRemove;
+        set => suppressNextRemove = value;
+    }
 
     private int InsertOrAddItem(int index, TItem item)
     {

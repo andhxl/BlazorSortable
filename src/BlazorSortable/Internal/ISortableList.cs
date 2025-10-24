@@ -5,4 +5,6 @@ internal interface ISortableList : ISortableInfo
     object this[int index] { get; }
 
     int DraggedItemIndex { get; }
+
+    bool SuppressNextRemove { get; set; }
 }
