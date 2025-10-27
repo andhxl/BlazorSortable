@@ -7,6 +7,6 @@ internal static class SortableAssemblyInfo
     private static string GetVersionQuery()
     {
         var v = typeof(Sortable<>).Assembly.GetName().Version;
-        return v is null ? "" : $"?v={v}";
+        return v is null ? string.Empty : $"?v={v}";
     }
 }
