@@ -545,7 +545,7 @@ public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
         };
     }
 
-#pragma warning disable CS1591
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public void OnStartJs(int index)
@@ -662,7 +662,7 @@ public partial class Sortable<TItem> : ISortableList, IAsyncDisposable
     //    OnDeselect?.Invoke(Items![index]);
     //}
 
-#pragma warning restore CS1591
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     object ISortableList.this[int index]
     {
