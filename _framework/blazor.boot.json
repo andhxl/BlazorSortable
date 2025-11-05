@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "BlazorSortableDemo",
   "resources": {
-    "hash": "sha256-5zp4RFtn4Kf2VFbVSV2uENRr6NzK/f2Ro+tRUKKAkcA=",
+    "hash": "sha256-kMM4iFiNa+M1ZgJf6thCFRdT9tgfEa2GP7NNW9hnwhs=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Components.tcx7biyjlb.wasm": "Microsoft.AspNetCore.Components.wasm",
       "Microsoft.AspNetCore.Components.Forms.ldwpbvn8hd.wasm": "Microsoft.AspNetCore.Components.Forms.wasm",
@@ -18,7 +18,7 @@
       "Microsoft.Extensions.Primitives.a5mjza44y9.wasm": "Microsoft.Extensions.Primitives.wasm",
       "Microsoft.JSInterop.gf06bdkkzh.wasm": "Microsoft.JSInterop.wasm",
       "Microsoft.JSInterop.WebAssembly.9tiedlnvko.wasm": "Microsoft.JSInterop.WebAssembly.wasm",
-      "Radzen.Blazor.6l04nd2zzy.wasm": "Radzen.Blazor.wasm",
+      "Radzen.Blazor.hm0cohfgwn.wasm": "Radzen.Blazor.wasm",
       "Microsoft.CSharp.iqhngefah5.wasm": "Microsoft.CSharp.wasm",
       "System.Collections.Concurrent.ns6hpm2bwv.wasm": "System.Collections.Concurrent.wasm",
       "System.Collections.Immutable.kd4ifd7h9r.wasm": "System.Collections.Immutable.wasm",
@@ -61,8 +61,8 @@
       "System.Xml.XDocument.kpklgpeww4.wasm": "System.Xml.XDocument.wasm",
       "System.8rv0tdtrxz.wasm": "System.wasm",
       "System.Private.CoreLib.n6r9mu9btb.wasm": "System.Private.CoreLib.wasm",
-      "BlazorSortable.30oagn5o88.wasm": "BlazorSortable.wasm",
-      "BlazorSortableDemo.dxjrern1dj.wasm": "BlazorSortableDemo.wasm",
+      "BlazorSortable.qx6deayzus.wasm": "BlazorSortable.wasm",
+      "BlazorSortableDemo.el9in1u4n8.wasm": "BlazorSortableDemo.wasm",
       "dotnet.js": "dotnet.js",
       "dotnet.native.l4ptthxatg.js": "dotnet.native.js",
       "dotnet.native.d2w7colv7e.wasm": "dotnet.native.wasm",
@@ -105,7 +105,7 @@
       "Microsoft.Extensions.Primitives.a5mjza44y9.wasm": "sha256-Il7b7g4iQZWSTrBCdBft+EmS4u4r3VgzpqSIb4bfvTI=",
       "Microsoft.JSInterop.gf06bdkkzh.wasm": "sha256-rMZ5JmRm/c98ZUGGvAUhCE7DRRX1TpyP9b1lkQRkcqc=",
       "Microsoft.JSInterop.WebAssembly.9tiedlnvko.wasm": "sha256-vScvGCGFOzwoTsy7VKfMU9uuEskXbOdWabIc80iDa9g=",
-      "Radzen.Blazor.6l04nd2zzy.wasm": "sha256-BnmJO9coFPmu+5ns+vfw08vCFE+N50g1B6BrFGuopwA=",
+      "Radzen.Blazor.hm0cohfgwn.wasm": "sha256-KXrGRc4I4+NT56KgwrGTnaC3UI3pn2g8Lzhv7FZnOMY=",
       "Microsoft.CSharp.iqhngefah5.wasm": "sha256-ijHVXGNgSp0VeShjb645gKIFrGkizvJ8cjT8qyuhfPs=",
       "System.Collections.Concurrent.ns6hpm2bwv.wasm": "sha256-p+3tCDd0p542SJni3vjcXhMcC7Y8HSOSipouKCdH/80=",
       "System.Collections.Immutable.kd4ifd7h9r.wasm": "sha256-qFmo6olfHA41rIqoyQJTHlDQqFQQrFaFZJ1aef7WIW8=",
@@ -146,8 +146,8 @@
       "System.Xml.Linq.fnt4rzi185.wasm": "sha256-5claBNmyy8L12DFLS17Fh4SBiTjwhYts3ds7g8dX8Gc=",
       "System.Xml.XDocument.kpklgpeww4.wasm": "sha256-GFDeJPMpvuxG84bJZz3l/h9Zp3tHgIQlwd9lBwkQq9w=",
       "System.8rv0tdtrxz.wasm": "sha256-xMF0eauQ5DkSzUozHLFFMQnL6DSJO09nJLtgag+Dzbw=",
-      "BlazorSortable.30oagn5o88.wasm": "sha256-A7QPouoD2CNhJaVXSa31ZAgAJrbpbTN6e4DNkYQ+fWM=",
-      "BlazorSortableDemo.dxjrern1dj.wasm": "sha256-oWeLIxvJM4o94GcFfPsMdJLUHMhR+nObwLipVvEAhRI="
+      "BlazorSortable.qx6deayzus.wasm": "sha256-XnrLpm4zQ/p/fWvUgDmlt+L4QkdmkKK9VgW5mcl8gIw=",
+      "BlazorSortableDemo.el9in1u4n8.wasm": "sha256-7gNH+WfUUwr+U2lXvQte0iYjqWB1hy4VdyqGct3+x7E="
     }
   },
   "cacheBootResources": true,

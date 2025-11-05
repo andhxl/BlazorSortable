@@ -5,10 +5,3 @@
 .sortable-fallback {
     opacity: 1 !important;
 }
-
-/*.sortable-selected
-.sortable-swap-highlight {
-    background-color: #e3f2fd;
-    outline: 1px solid #1976d2;
-    outline-offset: -1px;
-}*/
