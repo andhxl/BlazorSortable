@@ -13,7 +13,6 @@ export function initSortable(id, options, component) {
         };
     }
 
-    // TODO: MultiDrag, Swap
     el._sortable = new Sortable(el, {
         ...options,
         onStart: (evt) => {
@@ -23,12 +22,6 @@ export function initSortable(id, options, component) {
             component.invokeMethodAsync('OnEndJs');
         },
         onUpdate: (evt) => {
-            //const oldIndexes = extractIndexes(evt.oldIndicies);
-            //const newIndexes = extractIndexes(evt.newIndicies);
-
-            //if (evt.swapItem) {
-            //}
-
             // Revert the DOM to match the .NET state
             evt.item.remove();
             evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
@@ -37,15 +30,9 @@ export function initSortable(id, options, component) {
             component.invokeMethodAsync('OnUpdateJs', evt.oldIndex, evt.newIndex);
         },
         onAdd: (evt) => {
-            //const oldIndexes = extractIndexes(evt.oldIndicies);
-            //const newIndexes = extractIndexes(evt.newIndicies);
-
             component.invokeMethodAsync('OnAddJs', evt.from.id, evt.oldIndex, evt.newIndex, evt.pullMode === 'clone');
         },
         onRemove: (evt) => {
-            //const oldIndexes = extractIndexes(evt.oldIndicies);
-            //const newIndexes = extractIndexes(evt.newIndicies);
-
             evt.item.remove();
             evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
 
@@ -55,13 +42,7 @@ export function initSortable(id, options, component) {
             else {
                 component.invokeMethodAsync('OnRemoveJs', evt.oldIndex, evt.to.id, evt.newIndex);
             }
-        },
-        //onSelect: (evt) => {
-        //    component.invokeMethodAsync('OnSelectJs', evt.oldIndex);
-        //},
-        //onDeselect: (evt) => {
-        //    component.invokeMethodAsync('OnDeselectJs', evt.oldIndex);
-        //}
+        }
     });
 }
 
@@ -74,7 +55,3 @@ export function destroySortable(id) {
         delete el._sortable;
     }
 }
-
-//function extractIndexes(indicies) {
-//    return indicies.map(i => i.index);
-//}
