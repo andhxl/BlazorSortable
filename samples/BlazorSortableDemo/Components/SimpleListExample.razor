@@ -1,8 +1,7 @@
 <ExampleComponent Id="@Id"
                   Title="Simple list"
                   CodeContent="@codeContent">
-    <Sortable TItem="ClassA"
-              Items="Utils.CreateItemList<ClassA>(5)"
+    <Sortable Items="Utils.CreateItemList<ClassA>(5)"
               Class="items-column"
               Delay="150"
               DelayOnTouchOnly="true">
@@ -17,8 +16,7 @@
     public string Id { get; set; }
 
     private string codeContent = @"
-<Sortable TItem=""ClassA""
-          Items=""Utils.CreateItemList<ClassA>(5)""
+<Sortable Items=""Utils.CreateItemList<ClassA>(5)""
           Class=""items-column""
           Delay=""150""
           DelayOnTouchOnly=""true"">
