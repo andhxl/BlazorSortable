@@ -6,14 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GeneratePackageOnBuild Condition="$(Configuration) == 'Release'">true</GeneratePackageOnBuild>
-    <Version>5.1.5</Version>
+    <Version>5.1.6</Version>
     <Authors>andhxl</Authors>
     <Description>A Blazor component that wraps the SortableJS library to provide interactive, drag-and-drop list reordering functionality.</Description>
     <Copyright>© $([System.DateTime]::Now.Year) $(Authors)</Copyright>
-    <PackageProjectUrl>https://andhxl.github.io/BlazorSortable/</PackageProjectUrl>
+    <PackageProjectUrl>https://andhxl.github.io/blazor-sortable/</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/andhxl/BlazorSortable</RepositoryUrl>
+    <RepositoryUrl>https://github.com/andhxl/blazor-sortable</RepositoryUrl>
     <PackageTags>blazor;components;ui;sortable;sortablejs;drag-and-drop;drag-drop;dragndrop;dragdrop;reorder</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
