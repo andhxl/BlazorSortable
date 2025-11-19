@@ -1,6 +1,6 @@
 # BlazorSortable
 
-![BlazorSortable Icon](https://raw.githubusercontent.com/andhxl/BlazorSortable/main/icon.png)
+![BlazorSortable Icon](https://raw.githubusercontent.com/andhxl/blazor-sortable/main/icon.png)
 
 [![NuGet Version](https://img.shields.io/nuget/vpre/BlazorSortable?style=for-the-badge)](https://www.nuget.org/packages/BlazorSortable)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/BlazorSortable?style=for-the-badge)](https://www.nuget.org/packages/BlazorSortable)
